@@ -6,7 +6,13 @@ from wbsurfer.scene import Scene
 
 
 def test_scene(dtseries_scene: Path):
-    """Test the Scene class."""
+    """Test the Scene class.
+
+    Parameters
+    ----------
+    dtseries_scene : Path
+        The path to the dtseries scene file.
+    """
     with TemporaryDirectory() as tmpdir:
         scene = Scene(dtseries_scene)
         # vertex_table, voxel_table = scene.get_vertex_and_voxel_table()
