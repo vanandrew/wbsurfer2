@@ -53,3 +53,6 @@ source = ["wbsurfer"]
 [tool.coverage.report]
 show_missing = true
 precision = 2
+
+[tool.pylint.ini_options]
+disable = "missing-docstring"
