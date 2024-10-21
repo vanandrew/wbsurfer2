@@ -14,8 +14,8 @@ from wbsurfer.scene import Scene
 logger = logging.getLogger(__name__)
 
 
-# find path to wb_command
 def find_wb_command() -> str:
+    """Find the wb_command executable."""
     wb_command = os.getenv("WBSURFER_WBCOMMAND", None)
     if wb_command is None:
         # try automatically finding wb_command from shell
@@ -40,6 +40,7 @@ def generate_movie(
     output: Path | str,
     width: int = 1920,
     height: int = 1080,
+    framerate: int = 10,
     num_cpus: int = 1,
 ):
     """Generate a movie from a list of row indices.
@@ -58,7 +59,10 @@ def generate_movie(
         The width of the output movie, by default 1920.
     height : int, optional
         The height of the output movie, by default 1080.
+    framerate : int, optional
+        The framerate of the output movie, by default 10.
     num_cpus : int, optional
+        The number of CPUs to use for processing, by default 1.
     """
     # convert to Path objects
     scene_path = Path(scene_path)
@@ -86,17 +90,17 @@ def generate_movie(
                 # set the current point
                 new_scene.change_connectivity_active_row(point)
                 # save the scene
-                new_scene.save(scenes_path / f"frame{idx:04d}.scene")
-                logger.info(f"Processing Frame: {idx:04d}")
+                new_scene.save(scenes_path / f"frame{idx:09d}.scene")
+                logger.info(f"Processing Frame: {idx}")
                 futures.append(
                     executor.submit(
                         run_process,
                         [
                             WB_COMMAND,
                             "-show-scene",
-                            str(scenes_path / f"frame{idx:04d}.scene"),
+                            str(scenes_path / f"frame{idx:09d}.scene"),
                             scene_name,
-                            str(frames_path / f"frame{idx:04d}.png"),
+                            str(frames_path / f"frame{idx:09d}.png"),
                             str(width),
                             str(height),
                         ],
@@ -108,6 +112,28 @@ def generate_movie(
             for future in futures:
                 future.result()
             logger.info("Workbench rendering complete.")
+            logger.info("Generating movie...")
+            in_images = str(Path(frames_path) / "frame%09d.png")
+            run_process(
+                [
+                    "ffmpeg",
+                    "-hide_banner",
+                    "-y",
+                    "-r",
+                    str(framerate),
+                    "-start_number",
+                    "0",
+                    "-i",
+                    in_images,
+                    "-c:v",
+                    "libx264",
+                    "-r",
+                    str(framerate),
+                    "-pix_fmt",
+                    "yuv420p",
+                    str(output),
+                ],
+            )
 
         # print output
         logger.info(f"Movie saved to: {output}")

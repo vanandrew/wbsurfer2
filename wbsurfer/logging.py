@@ -6,14 +6,14 @@ from subprocess import DEVNULL, PIPE, STDOUT, Popen
 logger = logging.getLogger(__name__)
 
 
-def run_process(cmd: list[str], env: dict[str, str], suppress_output: bool = False) -> int:
+def run_process(cmd: list[str], env: dict[str, str] | None = None, suppress_output: bool = False) -> int:
     """Run a shell command and capture stdout and stderr as it runs, logging in real-time.
 
     Parameters
     ----------
     cmd : list[str]
         Command and arguments as a list (e.g., ['ls', '-l']).
-    env : dict[str, str]
+    env : dict[str, str], optional
         Environment variables to set for the process.
     suppress_output : bool, optional
         Suppress output from the process, by default False

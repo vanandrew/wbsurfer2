@@ -14,6 +14,7 @@ def main():
     parser.add_argument("-o", "--output", required=True, type=str, help="The output file path.")
     parser.add_argument("--width", type=int, default=1920, help="The width of the output movie.")
     parser.add_argument("--height", type=int, default=1080, help="The height of the output movie.")
+    parser.add_argument("-r", "--framerate", type=int, default=10, help="The framerate of the output movie.")
     parser.add_argument("--num-cpus", type=int, default=1, help="The number of CPUs to use for processing.")
     parser.add_argument("row_indices", type=int, nargs="+", help="The list of row indices to generate the movie from.")
     args = parser.parse_args()
@@ -27,7 +28,14 @@ def main():
 
     # generate the movie
     generate_movie(
-        args.row_indices, args.scene_path, args.scene_name, args.output, args.width, args.height, args.num_cpus
+        args.row_indices,
+        args.scene_path,
+        args.scene_name,
+        args.output,
+        args.width,
+        args.height,
+        args.framerate,
+        args.num_cpus,
     )
 
 
