@@ -1,5 +1,7 @@
 """Exact search for Geodesic paths"""
 
+from typing import cast
+
 import numpy as np
 from geodesic_chenhan import CEdge as Edge
 from geodesic_chenhan import CFace as Face
@@ -7,7 +9,78 @@ from geodesic_chenhan import CICHWithFurtherPriorityQueue as ICHWithFurtherPrior
 from geodesic_chenhan import CPoint3D as Point3D
 from geodesic_chenhan import CRichModel as RichModel  # type: ignore
 from geodesic_chenhan import EdgePoint
+from nibabel.gifti.gifti import GiftiImage
 from numpy.typing import NDArray
+
+from wbsurfer.scene import Scene
+
+
+def remove_dupicate_indices_from_path(path: list[np.integer]) -> list[int]:
+    """Removes duplicate indices from a path.
+
+    Parameters
+    ----------
+    path : list[np.integer]
+        The path to remove duplicate indices from.
+
+    Returns
+    -------
+    list[np.integer]
+        The path with duplicate indices removed.
+    """
+    # remove duplicates from path
+    last_vertex = -1
+    nodups_path = []
+    for p in path:
+        if p != last_vertex:
+            nodups_path.append(int(p))
+            last_vertex = int(p)
+    return nodups_path
+
+
+def get_continuous_path(path: list[int], scene: Scene) -> list[int]:
+    """Takes a list of indices on a mesh and returns a continuous path.
+
+    Parameters
+    ----------
+    path : list[int]
+        The list of row indices to process
+    scene : Scene
+        The scene object containing the mesh.
+
+    Returns
+    -------
+    list[int]
+        The continuous list of row indices that make up the continuous path.
+    """
+    # make list to store continuous path
+    continuous_path = []
+    # initialize gpath object
+    gpath = None
+    # loop through pairs of points on the path
+    for point_1, point_2 in zip(path[:-1], path[1:]):
+        # first find the hemisphere of the first point and second point
+        hemisphere_1 = scene.get_hemisphere_from_row(point_1)
+        hemisphere_2 = scene.get_hemisphere_from_row(point_2)
+        if hemisphere_1 != hemisphere_2:
+            raise ValueError("Path crosses hemispheres")
+        # load gifti file
+        gifti_file = scene.get_hemisphere_gifti_filename(hemisphere_1)
+        # get vertices and faces
+        vertices = cast(NDArray[np.float32], GiftiImage.load(gifti_file).darrays[0].data)
+        faces = cast(NDArray[np.int32], GiftiImage.load(gifti_file).darrays[1].data)
+        # get path between points
+        if gpath is None:
+            gpath = GeodesicPath(vertices, faces)
+        vertex1, vertex2 = scene.get_vertex_from_row(point_1), scene.get_vertex_from_row(point_2)
+        interpolated_path = gpath.as_nearest_index(gpath.path(vertex1, vertex2))
+        continuous_path.extend([int(p) for p in interpolated_path])
+    # return the continuous path, removing duplicates
+    continuous_path = remove_dupicate_indices_from_path(continuous_path)
+
+    # map back to row indices
+    vertex_table, _ = scene.get_vertex_and_voxel_table()
+    return [int(np.where(vertex_table == p)[0][0]) for p in continuous_path]
 
 
 class GeodesicPath:
@@ -137,28 +210,6 @@ class GeodesicPath:
             edges.append(e)
         return edges
 
-    def remove_dupicate_indices_from_path(self, path: list[np.int64]) -> list[np.int64]:
-        """Removes duplicate indices from a path.
-
-        Parameters
-        ----------
-        path : list[np.integer]
-            The path to remove duplicate indices from.
-
-        Returns
-        -------
-        list[np.integer]
-            The path with duplicate indices removed.
-        """
-        # remove duplicates from path
-        last_vertex = -1
-        nodups_path = []
-        for p in path:
-            if p != last_vertex:
-                nodups_path.append(p)
-                last_vertex = p
-        return nodups_path
-
     def as_nearest_index(self, path: list[EdgePoint], remove_duplicates: bool = True) -> NDArray[np.int64]:
         """Returns the nearest index of each edge point in the path.
 
@@ -188,5 +239,5 @@ class GeodesicPath:
             else:
                 nearest_index.append(e.indexOfRightVert)
         if remove_duplicates:
-            return np.array(self.remove_dupicate_indices_from_path(nearest_index))
+            return np.array(remove_dupicate_indices_from_path(nearest_index))
         return np.array(nearest_index)

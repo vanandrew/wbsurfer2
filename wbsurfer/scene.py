@@ -115,6 +115,13 @@ class Scene:
         voxel_table = cifti.header.get_axis(1).voxel
         return vertex_table, voxel_table
 
+    def get_vertex_from_row(self, row: int) -> int:
+        """Returns the equivalent vertex index from the given row index."""
+        # get vertex table
+        vertex_table, _ = self.get_vertex_and_voxel_table()
+        # return the vertex index
+        return vertex_table[row]
+
     def change_connectivity_active_row(self, row: int) -> None:
         """Change the active row for connectivity map.
 

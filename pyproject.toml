@@ -9,7 +9,6 @@ keywords = ["neuroimaging"]
 classifiers = ["License :: OSI Approved :: MIT License"]
 urls = { gitlab = "https://github.com/vanandrew/wbsurfer2" }
 version = "0.1.0"
-dynamic = ["scripts"]
 dependencies = [
     "geodesic-chenhan >= 0.1.1",
     "networkx >= 3.4.1",
@@ -28,6 +27,9 @@ dev = [
     "pytest >= 8.3.3",
     "pyupgrade >= 3.18.0",
 ]
+
+[project.scripts]
+wb_surfer = "wbsurfer.cli:main"
 
 [build-system]
 requires = ["setuptools", "wheel"]
@@ -62,6 +64,10 @@ precision = 2
 disable = [
     "missing-docstring",
     "no-name-in-module",
+    "logging-fstring-interpolation",
+    "too-many-arguments",
+    "too-many-positional-arguments",
+    "too-many-locals",
 ]
 max-line-length = 120
 
