@@ -56,3 +56,4 @@ precision = 2
 
 [tool.pylint.ini_options]
 disable = "missing-docstring"
+max-line-length = 120
