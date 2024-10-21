@@ -29,7 +29,7 @@ dev = [
 ]
 
 [project.scripts]
-wb_surfer = "wbsurfer.cli:main"
+wb_surfer2 = "wbsurfer.cli:main"
 
 [build-system]
 requires = ["setuptools", "wheel"]

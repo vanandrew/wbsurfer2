@@ -97,15 +97,16 @@ def generate_movie(
                         run_process,
                         [
                             WB_COMMAND,
-                            "-show-scene",
+                            "-scene-capture-image",
                             str(scenes_path / f"frame{idx:09d}.scene"),
                             scene_name,
                             str(frames_path / f"frame{idx:09d}.png"),
+                            "-size-width-height",
                             str(width),
                             str(height),
                         ],
                         {"OMP_NUM_THREADS": "1"},
-                        suppress_output=True,
+                        suppress_output=False,
                     )
                 )
             logger.info("Waiting for workbench rendering to complete...")
