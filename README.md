@@ -2,7 +2,7 @@
 CLI tool for making CIFTI-related movies
 
 A refactor and refresh of the original [wbsurfer](https://gitlab.com/vanandrew/wbsurfer) tool.
-This version supports Connectome Workbench 2.0.
+This version aims to support >= Connectome Workbench 2.0.
 
 Very much a work in progress, features are minimal and bugs are expected.
 
@@ -15,9 +15,18 @@ cd wbsurfer2
 pip install .
 ```
 
+You will also need `ffmpeg` and `wb_command` installed on your system and on your `PATH`.
+`wb_command` is part of the Connectome Workbench suite, which can be downloaded
+[here](https://www.humanconnectome.org/software/get-connectome-workbench). `ffmpeg` can be downloaded in many ways,
+but I recommend using a package manager like `apt` or `brew`.
+
 ## Usage
 
-Once it's installed, you can run the `wb_surfer` command. The following is the help message:
+> [!TIP]
+> Row indices passed into `wb_surfer2` are 0-indexed. This means that the first row is row 0,
+> the second row is row 1, and so on. This is -1 from the row indices given in the UI of Connectome Workbench.
+
+Once it's installed, you can run the `wb_surfer2` command. The following is the help message:
 
 ```bash
 usage: wb_surfer2 [-h] -s SCENE_PATH -n SCENE_NAME -o OUTPUT [--width WIDTH] [--height HEIGHT] [-r FRAMERATE] [--num-cpus NUM_CPUS]
