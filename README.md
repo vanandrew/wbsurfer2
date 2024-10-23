@@ -39,7 +39,7 @@ export PATH=$PATH:/Applications/wb_view.app/Contents/usr/bin
 ```
 
 `ffmpeg` can be downloaded in many ways, but I recommend using a package manager like `apt` or
- `brew`:
+ [`brew`](https://brew.sh/):
 
 ```bash
 # Ubuntu/Debian
