@@ -6,9 +6,7 @@ https://github.com/user-attachments/assets/e40315fb-f528-4cc7-ae91-8827bfef242c
 This is a refactor and refresh of the original [wbsurfer](https://gitlab.com/vanandrew/wbsurfer) tool.
 This version aims to support >= Connectome Workbench 2.0.
 
-Very much a work in progress, bugs are expected.
-
-## Installation
+## Setup
 
 There are two ways to use `wbsurfer2`. The first and recommended way is to
 download compiled binaries from the [releases page](https://github.com/vanandrew/wbsurfer2/releases).
@@ -23,9 +21,33 @@ pip install .
 ```
 
 You will also need `ffmpeg` and `wb_command` installed on your system and on your `PATH`.
+
 `wb_command` is part of the Connectome Workbench suite, which can be downloaded
-[here](https://www.humanconnectome.org/software/get-connectome-workbench). `ffmpeg` can be downloaded in many ways,
-but I recommend using a package manager like `apt` or `brew`.
+[here](https://www.humanconnectome.org/software/get-connectome-workbench). The `bin` directory
+contains the `wb_command` binary and should be added to your `PATH`.
+
+> [!TIP]
+> On macOS, the `wb_command` binary is located in the `Contents/usr/bin` directory of the
+> Connectome Workbench installation. This is usually `/Applications/wb_view.app/Contents/usr/bin`.
+
+```bash
+# If you installed workbench in /opt/workbench
+export PATH=$PATH:/opt/workbench/bin
+
+# on macOS
+export PATH=$PATH:/Applications/wb_view.app/Contents/usr/bin
+```
+
+`ffmpeg` can be downloaded in many ways, but I recommend using a package manager like `apt` or
+ `brew`:
+
+```bash
+# Ubuntu/Debian
+sudo apt install ffmpeg
+
+# macOS
+brew install ffmpeg
+```
 
 ## Usage
 
@@ -35,7 +57,7 @@ but I recommend using a package manager like `apt` or `brew`.
 > environment variables, if for some reason you are unable to add them to your `PATH`.
 >
 > `export FFMPEG_BINARY_PATH=/path/to/ffmpeg`
-> 
+>
 > `export WBCOMMAND_BINARY_PATH=/path/to/wb_command`
 
 Once it's installed, you can run the `wb_surfer2` command. The following is the help message:
