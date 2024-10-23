@@ -1,0 +1,72 @@
+name: Main Workflow
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  pyinstaller-build-linux:
+    name: PyInstaller Build (Linux)
+    runs-on: ubuntu-latest
+    container:
+      image: quay.io/pypa/manylinux_2_28_x86_64:latest
+    steps:
+      - name: Setup Node
+        run: |
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
+          # source the nvm script to make it available in the current shell
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+          # download and install Node.js (you may need to restart the terminal)
+          nvm install 22
+          # symlink the node and npm binaries to a location in the PATH
+          ln -s /root/.nvm/versions/node/v22.0.0/bin/node /usr/local/bin/node
+          ln -s /root/.nvm/versions/node/v22.0.0/bin/npm /usr/local/bin/npm
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run PyInstaller
+        run: |
+          yum install -y python3.11-devel
+          python3 -m ensurepip
+          python3 -m pip install pyinstaller
+          python3 -m pip install .
+          pyinstaller --onefile $(which wb_surfer2) --name wb_surfer2
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wb_surfer2_manylinux_2_28_x86_64
+          path: dist/wb_surfer2
+  pyinstaller-build-macos:
+    name: PyInstaller Build (macOS)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: Install PyInstaller
+        run: python -m pip install pyinstaller
+      - name: Install wb_surfer2
+        run: |
+          brew install boost
+          export CPPFLAGS="-I/opt/homebrew/include"
+          python -m pip install .
+      - name: Run PyInstaller
+        run: pyinstaller --onefile $(which wb_surfer2) --name wb_surfer2
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wb_surfer2_macOS_arm64
+          path: dist/wb_surfer2
+
+# cancel in-progress workflows if a newer one is started
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
