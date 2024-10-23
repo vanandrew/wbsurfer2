@@ -83,6 +83,7 @@ jobs:
           name: wb_surfer2_manylinux_2_28_x86_64
       - name: Make Zip (Linux)
         run: |
+          chmod +x wb_surfer2
           zip wb_surfer2_manylinux_2_28_x86_64_${{ github.ref_name }}.zip wb_surfer2
           rm wb_surfer2
       - name: Download Artifact (macOS)
@@ -91,6 +92,7 @@ jobs:
           name: wb_surfer2_macOS_arm64
       - name: Make Zip (macOS)
         run: |
+          chmod +x wb_surfer2
           zip wb_surfer2_macOS_arm64_${{ github.ref_name }}.zip wb_surfer2
           rm wb_surfer2
       - name: Create Release
