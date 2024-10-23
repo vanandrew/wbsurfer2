@@ -1,7 +1,11 @@
 from argparse import ArgumentParser
+from multiprocessing import freeze_support
 
-from wbsurfer.logging import setup_logging
-from wbsurfer.movie import generate_movie
+from .logging import setup_logging
+from .movie import generate_movie
+
+# needed for pyinstaller
+freeze_support()
 
 
 def main():

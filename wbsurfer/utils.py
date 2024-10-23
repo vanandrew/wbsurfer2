@@ -34,8 +34,8 @@ def find_command(command: str, env_var: str | None = None) -> Path:
             command_path = str(Path(output.stdout.strip()).resolve())
         except CalledProcessError as e:
             raise FileNotFoundError(
-                "wb_command not found in PATH. "
-                "Please set WBSURFER_WBCOMMAND environment variable or add wb_command to your PATH."
+                f"`{command}` not found in PATH. "
+                f"Please set `{env_var}` environment variable or add `{command}` to your PATH."
             ) from e
     return Path(command_path).resolve()
 
