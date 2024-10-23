@@ -10,7 +10,11 @@ Very much a work in progress, bugs are expected.
 
 ## Installation
 
-To install, clone this repo and pip install it:
+There are two ways to use `wbsurfer2`. The first and recommended way is to
+download compiled binaries from the [releases page](https://github.com/vanandrew/wbsurfer2/releases). Simply download the version meant for your OS and extract it.
+
+If you are more comfortable with Python, you can also install `wbsurfer2` from `pip`.
+
 ```bash
 git clone https://github.com/vanandrew/wbsurfer2.git
 cd wbsurfer2
