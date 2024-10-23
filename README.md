@@ -35,6 +35,7 @@ but I recommend using a package manager like `apt` or `brew`.
 > environment variables, if for some reason you are unable to add them to your `PATH`.
 >
 > `export FFMPEG_BINARY_PATH=/path/to/ffmpeg`
+> 
 > `export WBCOMMAND_BINARY_PATH=/path/to/wb_command`
 
 Once it's installed, you can run the `wb_surfer2` command. The following is the help message:
