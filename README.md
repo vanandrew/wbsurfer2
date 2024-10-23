@@ -29,7 +29,9 @@ but I recommend using a package manager like `apt` or `brew`.
 Once it's installed, you can run the `wb_surfer2` command. The following is the help message:
 
 ```bash
-usage: wb_surfer2 [-h] -s SCENE_PATH -n SCENE_NAME -o OUTPUT [--width WIDTH] [--height HEIGHT] [-r FRAMERATE] [--num-cpus NUM_CPUS]
+usage: wb_surfer2 [-h] -s SCENE_PATH -n SCENE_NAME -o OUTPUT [--width WIDTH]
+                  [--height HEIGHT] [-r FRAMERATE] [--closed | --reverse] [-l LOOPS]
+                  [--num-cpus NUM_CPUS] [--vertex-mode | --border-file]
                   row_indices [row_indices ...]
 
 Generate a movie from a list of row indices.
@@ -44,10 +46,24 @@ options:
   -n SCENE_NAME, --scene-name SCENE_NAME
                         The name of the scene in the scene file.
   -o OUTPUT, --output OUTPUT
-                        The output file path.
-  --width WIDTH         The width of the output movie.
-  --height HEIGHT       The height of the output movie.
+                        The output file path. Should end in .mp4.
+  --width WIDTH         The width of the output movie. By default, 1920 pixels.
+  --height HEIGHT       The height of the output movie. By default, 1080 pixels.
   -r FRAMERATE, --framerate FRAMERATE
-                        The framerate of the output movie.
+                        The framerate of the output movie. By default, 10 FPS.
+  --closed              If enabled, a closed loop will be generated. This appends the
+                        first row index to the end of the row index traversal list.
+                        Mutually exclusive with --reverse.
+  --reverse             If enabled, a reverse of the traversal list will be appended to
+                        the row index traversal list. Mutually exclusive with --closed.
+  -l LOOPS, --loops LOOPS
+                        How many times to loop the movie. By default, 1 loop.
   --num-cpus NUM_CPUS   The number of CPUs to use for processing.
+  --vertex-mode         If enabled, row_indices are treated as vertex indices. The first
+                        argument should be the surface that the vertices are on.
+                        Mutually exclusive with --border-file (e.g. CORTEX_LEFT 0 1 2
+                        3...)
+  --border-file         If enabled, the border file will be used to generate the movie.
+                        The row_indices argument should be the border file. Mutually
+                        exclusive with --vertex-mode.
   ```
