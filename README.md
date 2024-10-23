@@ -11,7 +11,8 @@ Very much a work in progress, bugs are expected.
 ## Installation
 
 There are two ways to use `wbsurfer2`. The first and recommended way is to
-download compiled binaries from the [releases page](https://github.com/vanandrew/wbsurfer2/releases). Simply download the version meant for your OS and extract it.
+download compiled binaries from the [releases page](https://github.com/vanandrew/wbsurfer2/releases).
+Simply download the version meant for your OS and extract it.
 
 If you are more comfortable with Python, you can also install `wbsurfer2` from `pip`.
 
@@ -28,9 +29,13 @@ but I recommend using a package manager like `apt` or `brew`.
 
 ## Usage
 
-> [!TIP]
-> Row indices passed into `wb_surfer2` are 0-indexed. This means that the first row is row 0,
-> the second row is row 1, and so on. This is -1 from the row indices given in the UI of Connectome Workbench.
+> [!IMPORTANT]  
+> `ffmpeg` and `wb_command` must be installed and on your `PATH` for `wbsurfer2` to work.
+> Alternatively, you can specify the path to both programs using the `FFMPEG_BINARY_PATH` and `WBCOMMAND_BINARY_PATH`
+> environment variables, if for some reason you are unable to add them to your `PATH`.
+>
+> `export FFMPEG_BINARY_PATH=/path/to/ffmpeg`
+> `export WBCOMMAND_BINARY_PATH=/path/to/wb_command`
 
 Once it's installed, you can run the `wb_surfer2` command. The following is the help message:
 
@@ -74,10 +79,15 @@ options:
                         exclusive with --vertex-mode.
   ```
 
-`wb_surfer2` requires a scene file to generate the movie. This scene file can be created in Connectome Workbench.
+> [!TIP]
+> Row indices passed into `wb_surfer2` are 0-indexed. This means that the first row is row 0,
+> the second row is row 1, and so on. This is -1 from the row indices given in the UI of Connectome Workbench.
 
-Unlike version 1, `wb_surfer2` can handle multiple scenes being defined in a file (though only one active scene can be
-used at a time). The active scene is defined by the `--scene-name` argument.
+`wb_surfer2` requires a scene file to generate the movie. This scene file can be created in Connectome Workbench's
+`wb_view` tool.
+
+Unlike in version 1 of `wb_surfer`, `wb_surfer2` can handle multiple scenes being defined in a file (though only one
+active scene can be used at a time). The active scene is set by using the `--scene-name` argument.
 
 When making your scene, at least one vertex must be placed on the surface for `wb_surfer2` to control. In the case of
-multiple vertices, only the first vertex will be manipulated. 
+multiple vertices, the first vertex that was placed will be manipulated. 
