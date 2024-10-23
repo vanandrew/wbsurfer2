@@ -4,7 +4,7 @@ CLI tool for making CIFTI-related movies
 A refactor and refresh of the original [wbsurfer](https://gitlab.com/vanandrew/wbsurfer) tool.
 This version aims to support >= Connectome Workbench 2.0.
 
-Very much a work in progress, features are minimal and bugs are expected.
+Very much a work in progress, bugs are expected.
 
 ## Installation
 
@@ -67,3 +67,11 @@ options:
                         The row_indices argument should be the border file. Mutually
                         exclusive with --vertex-mode.
   ```
+
+`wb_surfer2` requires a scene file to generate the movie. This scene file can be created in Connectome Workbench.
+
+Unlike version 1, `wb_surfer2` can handle multiple scenes being defined in a file (though only one active scene can be
+used at a time). The active scene is defined by the `--scene-name` argument.
+
+When making your scene, at least one vertex must be placed on the surface for `wb_surfer2` to control. In the case of
+multiple vertices, only the first vertex will be manipulated. 
