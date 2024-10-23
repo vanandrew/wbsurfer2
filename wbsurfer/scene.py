@@ -16,6 +16,8 @@ class Scene:
     ----------
     path : Path | str
         The path to the Scene file.
+    name : str | None
+        The name of the Scene to use in the Scene file.
     """
 
     base_path: Path
