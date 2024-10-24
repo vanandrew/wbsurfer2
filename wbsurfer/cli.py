@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 from multiprocessing import freeze_support
 
+from ._version import __version__
 from .logging import setup_logging
 from .movie import generate_movie
 
@@ -13,6 +14,7 @@ def main():
 
     # create the argument parser
     parser = ArgumentParser(description="Generate a movie from a list of row indices.")
+    parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument("-s", "--scene-path", required=True, type=str, help="The scene file to use.")
     parser.add_argument("-n", "--scene-name", required=True, type=str, help="The name of the scene in the scene file.")
     parser.add_argument("-o", "--output", required=True, type=str, help="The output file path. Should end in .mp4.")
