@@ -1,9 +1,12 @@
 """Load a Scene file and methods to manipulate it."""
 
 import xml.etree.ElementTree as ET
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal, cast
 
+import numpy as np
+from nibabel.affines import apply_affine
 from nibabel.cifti2.cifti2 import Cifti2Image
 from numpy import float64
 from numpy.typing import NDArray
@@ -26,13 +29,13 @@ class Scene:
 
     def __init__(self, path: Path | str, name: str | None = None):
         # store the path to the scene file
-        scene_path = Path(path).resolve()
+        self.scene_path = Path(path).resolve()
 
         # store the base_path of the scene file
-        self.base_path = scene_path.parent
+        self.base_path = self.scene_path.parent
 
         # load the scene file
-        self.tree = ET.parse(scene_path)
+        self.tree = ET.parse(self.scene_path)
 
         # if scene name is provided, store it
         self.scene_name = name
@@ -124,6 +127,16 @@ class Scene:
         # return the vertex index
         return vertex_table[row]
 
+    @staticmethod
+    def change_tuple_index_element(element: ET.Element, value: Iterable[Any]) -> None:
+        """Change the value of an Element with an index in the name."""
+        for index, v in zip(range(3), value):
+            subelement = element.find(f"./Element[@Index='{index}']")
+            if subelement is None:
+                # make a new subelement
+                subelement = element.makeelement("Element", {"Index": str(index)})
+            subelement.text = str(v)
+
     def change_connectivity_active_row(self, row: int) -> None:
         """Change the active row for connectivity map.
 
@@ -137,7 +150,7 @@ class Scene:
 
         # set vertex and voxel index to -1
         vertex_index = -1
-        voxel_index = -1
+        voxel_index = [-1, -1, -1]
 
         # get the equivalent vertex index
         vertex_index = vertex_table[row]
@@ -147,12 +160,11 @@ class Scene:
             voxel_index = voxel_table[row]
 
         # if both still incalid, raise error
-        if vertex_index == -1 and voxel_index == -1:
+        if vertex_index == -1 and (np.array(voxel_index) == -1).all():
             raise ValueError("Invalid row index.")
 
         # this is a surface row
         if vertex_index != -1:
-            # change the vertex index in the scene file
             root = self.tree.getroot()
             row_index_elements = root.findall(".//Object[@Name='m_rowIndex']")
             for element in row_index_elements:
@@ -167,10 +179,40 @@ class Scene:
                     # make a new subelement
                     subelement = element.makeelement("Element", {"Index": "0"})
                 subelement.text = str(vertex_index)
-        elif voxel_index != -1:  # this is a volume row
-            raise NotImplementedError("Volume row not implemented yet.")
+        elif not (np.array(voxel_index) == -1).all():  # this is a volume row
+            affine = self.get_cifti_file().header.get_axis(1).affine
+            coords = apply_affine(affine, np.array(voxel_index))
+            root = self.tree.getroot()
+            row_index_elements = root.findall(".//Object[@Name='m_rowIndex']")
+            for element in row_index_elements:
+                element.text = str(row)
+            voxel_ijk_elements = root.findall(".//ObjectArray[@Name='m_voxelIJK']")
+            for element in voxel_ijk_elements:
+                self.change_tuple_index_element(element, voxel_index)
+            volume_xyz_elements = root.findall(".//ObjectArray[@Name='m_volumeXYZ']")
+            for element in volume_xyz_elements:
+                self.change_tuple_index_element(element, coords)
+            stereotaxic_xyz_elements = root.findall(".//ObjectArray[@Name='m_stereotaxicXYZ']")
+            for element in stereotaxic_xyz_elements:
+                self.change_tuple_index_element(element, coords)
+            slice_coordinate_axial_elements = root.findall(".//Object[@Name='m_sliceCoordinateAxial']")
+            for element in slice_coordinate_axial_elements:
+                element.text = str(coords[2])
+            slice_coordinate_coronal_elements = root.findall(".//Object[@Name='m_sliceCoordinateCoronal']")
+            for element in slice_coordinate_coronal_elements:
+                element.text = str(coords[1])
+            slice_coordinate_parasagittal_elements = root.findall(".//Object[@Name='m_sliceCoordinateParasagittal']")
+            for element in slice_coordinate_parasagittal_elements:
+                element.text = str(coords[0])
 
     def get_hemisphere_from_row(self, row: int) -> Literal["CORTEX_LEFT", "CORTEX_RIGHT"]:
+        """Same as get_structure_from_row, but raises error on non-hemisphere."""
+        structure = self.get_structure_from_row(row)
+        if structure not in ["CORTEX_LEFT", "CORTEX_RIGHT"]:
+            raise ValueError("Row index is not a hemisphere.")
+        return cast(Literal["CORTEX_LEFT", "CORTEX_RIGHT"], structure)
+
+    def get_structure_from_row(self, row: int) -> str:
         """Get the hemisphere from the given row index.
 
         Parameters
@@ -185,20 +227,18 @@ class Scene:
         match = False
         structure = None
         for structure, bound, _ in cifti.header.get_axis(1).iter_structures():
+            if bound.stop is None:
+                bound = slice(bound.start, cifti.shape[1], None)
             if bound.start <= row < bound.stop:
                 match = True
                 break
 
         # return error if no match
         if not match:
-            raise IndexError("Row index out of bounds.")
+            raise IndexError(f"Row index out of bounds, max row is {cifti.shape[1]-1}.")
 
         # test if CORTEX_LEFT or CORTEX_RIGHT or neither
-        if structure == "CIFTI_STRUCTURE_CORTEX_LEFT":
-            return "CORTEX_LEFT"
-        if structure == "CIFTI_STRUCTURE_CORTEX_RIGHT":
-            return "CORTEX_RIGHT"
-        raise ValueError("Row index does not correspond to a hemisphere.")
+        return str(structure).split("CIFTI_STRUCTURE_")[1]
 
     def get_hemisphere_gifti_filename(self, hemi: Literal["CORTEX_LEFT", "CORTEX_RIGHT"]) -> Path:
         """Get the filename of the hemisphere surface."""

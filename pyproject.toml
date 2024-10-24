@@ -8,7 +8,7 @@ authors = [{ name = "Andrew Van", email = "vanandrew77@gmail.com" }]
 keywords = ["neuroimaging"]
 classifiers = ["License :: OSI Approved :: MIT License"]
 urls = { gitlab = "https://github.com/vanandrew/wbsurfer2" }
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
     "geodesic-chenhan >= 0.1.1",
     "networkx >= 3.4.1",
@@ -60,16 +60,13 @@ source = ["wbsurfer"]
 show_missing = true
 precision = 2
 
-[tool.pylint.ini_options]
-disable = [
-    "missing-docstring",
-    "no-name-in-module",
-    "logging-fstring-interpolation",
-    "too-many-arguments",
-    "too-many-positional-arguments",
-    "too-many-locals",
-]
+[tool.pylint.format]
 max-line-length = 120
+
+[tool.pylint."messages control"]
+disable = "all"
+enable = ["line-too-long", "missing-class-docstring", "missing-function-docstring", "unused-import"]
+score = false
 
 [tool.mypy]
 plugins = "numpy.typing.mypy_plugin"
