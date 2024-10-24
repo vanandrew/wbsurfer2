@@ -31,7 +31,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wheel
-          path: dist/
+          path: dist/*.whl
   pyinstaller-build-linux:
     name: PyInstaller Build (Linux)
     runs-on: ubuntu-latest
@@ -134,6 +134,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: wheel
+          path: dist/
       - name: Upload to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
  
