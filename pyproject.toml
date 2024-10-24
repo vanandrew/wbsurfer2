@@ -7,7 +7,7 @@ license = { text = "MIT License" }
 authors = [{ name = "Andrew Van", email = "vanandrew77@gmail.com" }]
 keywords = ["neuroimaging"]
 classifiers = ["License :: OSI Approved :: MIT License"]
-urls = { gitlab = "https://github.com/vanandrew/wbsurfer2" }
+urls = { github = "https://github.com/vanandrew/wbsurfer2" }
 version = "0.1.1"
 dependencies = [
     "geodesic-chenhan >= 0.1.1",
