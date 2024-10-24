@@ -19,7 +19,7 @@ from wbsurfer.volume import volume_interpolation
 logger = logging.getLogger(__name__)
 
 
-def process_surface_path(
+def process_frames(
     output: Path,
     path: list[int],
     scene: Scene,
@@ -30,7 +30,7 @@ def process_surface_path(
     loops: int,
     num_cpus: int,
 ):
-    """Process a surface path.
+    """Process frames for a path
 
     Parameters
     ----------
@@ -53,11 +53,8 @@ def process_surface_path(
     num_cpus : int
         The number of CPUs to use for processing.
     """
-    # get the continuous path
-    continuous_path = get_continuous_path(path, scene)
-    logger.info(f"Processing Row Indices: {continuous_path}")
-
     # generate new scenes for each point on path
+    logger.info(f"Processing Row Indices: {path}")
     with TemporaryDirectory() as tmp_dir:
         tmp_path = Path(tmp_dir)
         scenes_path = tmp_path / "scenes"
@@ -69,13 +66,13 @@ def process_surface_path(
             list(
                 executor.map(
                     make_new_scene_frame,
-                    [scene.scene_path] * len(continuous_path),
-                    [scene_name] * len(continuous_path),
-                    [scenes_path / f"frame{idx:09d}.scene" for idx in range(len(continuous_path))],
-                    [frames_path / f"frame{idx:09d}.png" for idx in range(len(continuous_path))],
-                    [width] * len(continuous_path),
-                    [height] * len(continuous_path),
-                    continuous_path,
+                    [scene.scene_path] * len(path),
+                    [scene_name] * len(path),
+                    [scenes_path / f"frame{idx:09d}.scene" for idx in range(len(path))],
+                    [frames_path / f"frame{idx:09d}.png" for idx in range(len(path))],
+                    [width] * len(path),
+                    [height] * len(path),
+                    path,
                 )
             )
             logger.info("Workbench rendering complete.")
@@ -83,87 +80,8 @@ def process_surface_path(
         # loop the movie based on the number of loops set
         offset = 0
         for _ in range(loops - 1):
-            offset += len(continuous_path)
-            for idx in range(len(continuous_path)):
-                new_frame = frames_path / f"frame{offset + idx:09d}.png"
-                old_frame = frames_path / f"frame{idx:09d}.png"
-                copyfile(old_frame, new_frame)
-
-        # generate the movie
-        logger.info("Generating movie...")
-        in_images = str(Path(frames_path) / "frame%09d.png")
-        run_ffmpeg(in_images, output, framerate)
-
-        # print output
-        logger.info(f"Movie saved to: {output}")
-
-
-def process_volume_path(
-    output: Path,
-    path: list[int],
-    scene: Scene,
-    scene_name: str,
-    width: int,
-    height: int,
-    framerate: int,
-    loops: int,
-    num_cpus: int,
-):
-    """Process a surface path.
-
-    Parameters
-    ----------
-    output : Path
-        The output file path.
-    path : list[int]
-        The path to process.
-    scene : Scene
-        The scene object.
-    scene_name : str
-        The name of the scene in the scene file.
-    width : int
-        The width of the frames.
-    height : int
-        The height of the frames.
-    framerate : int
-        The framerate of the movie.
-    loops : int
-        The number of loops to make.
-    num_cpus : int
-        The number of CPUs to use for processing.
-    """
-    # get the continuous path
-    continuous_path = volume_interpolation(path, scene)
-    logger.info(f"Processing Row Indices: {continuous_path}")
-
-    # generate new scenes for each point on path
-    with TemporaryDirectory() as tmp_dir:
-        tmp_path = Path(tmp_dir)
-        scenes_path = tmp_path / "scenes"
-        scenes_path.mkdir(parents=True, exist_ok=True)
-        frames_path = tmp_path / "frames"
-        frames_path.mkdir(parents=True, exist_ok=True)
-        with ProcessPoolExecutor(max_workers=num_cpus) as executor:
-            logger.info("Waiting for workbench rendering to complete...")
-            list(
-                executor.map(
-                    make_new_scene_frame,
-                    [scene.scene_path] * len(continuous_path),
-                    [scene_name] * len(continuous_path),
-                    [scenes_path / f"frame{idx:09d}.scene" for idx in range(len(continuous_path))],
-                    [frames_path / f"frame{idx:09d}.png" for idx in range(len(continuous_path))],
-                    [width] * len(continuous_path),
-                    [height] * len(continuous_path),
-                    continuous_path,
-                )
-            )
-            logger.info("Workbench rendering complete.")
-
-        # loop the movie based on the number of loops set
-        offset = 0
-        for _ in range(loops - 1):
-            offset += len(continuous_path)
-            for idx in range(len(continuous_path)):
+            offset += len(path)
+            for idx in range(len(path)):
                 new_frame = frames_path / f"frame{offset + idx:09d}.png"
                 old_frame = frames_path / f"frame{idx:09d}.png"
                 copyfile(old_frame, new_frame)
@@ -271,6 +189,7 @@ def generate_movie(
 
     # first compute the continuous path
     if structure == "CORTEX_LEFT" or structure == "CORTEX_RIGHT":  # surface
-        process_surface_path(output, path, scene, scene_name, width, height, framerate, loops, num_cpus)
+        continuous_path = get_continuous_path(path, scene)
     else:  # volume
-        process_volume_path(output, path, scene, scene_name, width, height, framerate, loops, num_cpus)
+        continuous_path = volume_interpolation(path, scene)
+    process_frames(output, continuous_path, scene, scene_name, width, height, framerate, loops, num_cpus)
