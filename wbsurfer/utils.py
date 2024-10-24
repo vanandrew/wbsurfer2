@@ -106,7 +106,7 @@ def run_wb_command(scene_path: Path | str, scene_name: str, output_path: Path | 
             str(height),
         ],
         {"OMP_NUM_THREADS": "1"},
-        suppress_output=True,
+        suppress_output=False,
     )
 
 
