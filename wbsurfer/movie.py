@@ -64,7 +64,7 @@ def process_frames(
         with ProcessPoolExecutor(max_workers=num_cpus) as executor:
             logger.info("Waiting for workbench rendering to complete...")
             list(
-                executor.map(
+                map(
                     make_new_scene_frame,
                     [scene.scene_path] * len(path),
                     [scene_name] * len(path),
