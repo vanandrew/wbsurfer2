@@ -15,9 +15,13 @@ Simply download the version meant for your OS and extract it.
 If you are more comfortable with Python, you can also install `wbsurfer2` from `pip`.
 
 ```bash
-git clone https://github.com/vanandrew/wbsurfer2.git
+# install wbsurfer2 from PyPI
+pip install wbsurfer2
+
+# or if you want to install it for development
+git clone git@github.com:vanandrew/wbsurfer2.git
 cd wbsurfer2
-pip install .
+pip install -e .
 ```
 
 You will also need `ffmpeg` and `wb_command` installed on your system and on your `PATH`.
