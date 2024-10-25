@@ -33,7 +33,6 @@ def run_process(cmd: list[str], env: dict[str, str] | None = None, suppress_outp
         env=env,
     ) as process:
         if not suppress_output:
-            logger.info(f"Running Command: {' '.join(cmd)}")
             # Log stdout and stderr in real time
             if process.stdout is None:
                 raise ValueError("Failed to open stdout")

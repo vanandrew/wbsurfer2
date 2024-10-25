@@ -9,6 +9,7 @@ from typing import cast
 
 import numpy as np
 from nibabel.cifti2.cifti2_axes import BrainModelAxis
+from rich.progress import track
 
 from wbsurfer.border import Border
 from wbsurfer.geodesic import get_continuous_path
@@ -62,17 +63,25 @@ def process_frames(
         frames_path = tmp_path / "frames"
         frames_path.mkdir(parents=True, exist_ok=True)
         with ProcessPoolExecutor(max_workers=num_cpus) as executor:
+            if num_cpus == 1:
+                map_func = map
+            else:
+                map_func = executor.map
             logger.info("Waiting for workbench rendering to complete...")
             list(
-                executor.map(
-                    make_new_scene_frame,
-                    [scene.scene_path] * len(path),
-                    [scene_name] * len(path),
-                    [scenes_path / f"frame{idx:09d}.scene" for idx in range(len(path))],
-                    [frames_path / f"frame{idx:09d}.png" for idx in range(len(path))],
-                    [width] * len(path),
-                    [height] * len(path),
-                    path,
+                track(
+                    map_func(
+                        make_new_scene_frame,
+                        [scene.scene_path] * len(path),
+                        [scene_name] * len(path),
+                        [scenes_path / f"frame{idx:09d}.scene" for idx in range(len(path))],
+                        [frames_path / f"frame{idx:09d}.png" for idx in range(len(path))],
+                        [width] * len(path),
+                        [height] * len(path),
+                        path,
+                    ),
+                    description="Rendering frames...",
+                    total=len(path),
                 )
             )
             logger.info("Workbench rendering complete.")

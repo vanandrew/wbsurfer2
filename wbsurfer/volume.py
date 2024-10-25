@@ -1,5 +1,6 @@
 import numpy as np
 from numpy.typing import NDArray
+from rich.progress import track
 
 from wbsurfer.scene import Scene
 
@@ -106,7 +107,7 @@ def volume_interpolation(path: list[int], scene: Scene) -> list[int]:
     interpolated_path = []
 
     # loop through pairs of points on the path
-    for point_1, point_2 in zip(path[:-1], path[1:]):
+    for point_1, point_2 in track(zip(path[:-1], path[1:]), description="Interpolating path...", total=len(path) - 1):
         # first ensure they are in the same structure
         structure_1 = scene.get_structure_from_row(point_1)
         structure_2 = scene.get_structure_from_row(point_2)

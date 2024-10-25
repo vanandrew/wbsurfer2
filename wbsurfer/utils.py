@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from subprocess import CalledProcessError, run
 
-from .logging import run_process, setup_logging
+from .logging import run_process
 from .scene import Scene
 
 logger = logging.getLogger(__name__)
@@ -118,7 +118,7 @@ def make_new_scene_frame(
     width: int,
     height: int,
     row_index: int,
-) -> None:
+) -> Path:
     """Make a new scene frame.
 
     Parameters
@@ -137,10 +137,12 @@ def make_new_scene_frame(
         The height of the output image.
     row_index : int
         The row index to use.
+
+    Returns
+    -------
+    Path
+        The output png file path.
     """
-    # setup logging for multiprocessing
-    setup_logging()
-    logger.info(f"Creating new scene frame for row {row_index}.")
     # set paths
     output_scene_path = Path(output_scene_path)
     output_png_path = Path(output_png_path)
@@ -152,4 +154,4 @@ def make_new_scene_frame(
     new_scene.save(output_scene_path)
     # render scene to png
     run_wb_command(output_scene_path, scene_name, output_png_path, width, height)
-    logger.info(f"Finished rendering scene frame for row {row_index}.")
+    return output_png_path

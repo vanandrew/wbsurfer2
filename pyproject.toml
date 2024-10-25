@@ -12,7 +12,7 @@ dependencies = [
     "geodesic-chenhan >= 0.1.1",
     "networkx >= 3.4.1",
     "nibabel >= 5.3.0",
-    "python-ffmpeg >= 2.0.12",
+    "rich >= 13.9.3",
     "scipy >= 1.14.1",
     "trimesh >= 4.4.9",
 ]

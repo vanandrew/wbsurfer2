@@ -11,6 +11,7 @@ from geodesic_chenhan import CRichModel as RichModel  # type: ignore
 from geodesic_chenhan import EdgePoint
 from nibabel.gifti.gifti import GiftiImage
 from numpy.typing import NDArray
+from rich.progress import track
 
 from wbsurfer.scene import Scene
 
@@ -58,7 +59,7 @@ def get_continuous_path(path: list[int], scene: Scene) -> list[int]:
     # initialize gpath object
     gpath = None
     # loop through pairs of points on the path
-    for point_1, point_2 in zip(path[:-1], path[1:]):
+    for point_1, point_2 in track(zip(path[:-1], path[1:]), description="Calculating path...", total=len(path) - 1):
         # first find the hemisphere of the first point and second point
         hemisphere_1 = scene.get_hemisphere_from_row(point_1)
         hemisphere_2 = scene.get_hemisphere_from_row(point_2)
