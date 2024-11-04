@@ -3,10 +3,15 @@ import os
 from pathlib import Path
 from subprocess import CalledProcessError, run
 
+from wbsurfer.logging import setup_logging
+
 from .logging import run_process
 from .scene import Scene
 
 logger = logging.getLogger(__name__)
+
+# set environment variable for logging external commands
+EXTERNAL_COMMAND_LOG = int(os.environ.get("EXTERNAL_COMMAND_LOG", 0))
 
 
 def find_command(command: str, env_var: str | None = None) -> Path:
@@ -56,26 +61,30 @@ def run_ffmpeg(in_images: str, output: Path | str, framerate: int) -> None:
     framerate : int
         The framerate of the output movie.
     """
-    run_process(
-        [
-            "ffmpeg",
-            "-hide_banner",
-            "-y",
-            "-r",
-            str(framerate),
-            "-start_number",
-            "0",
-            "-i",
-            in_images,
-            "-c:v",
-            "libx264",
-            "-r",
-            str(framerate),
-            "-pix_fmt",
-            "yuv420p",
-            str(output),
-        ],
-    )
+    if (
+        run_process(
+            [
+                "ffmpeg",
+                "-hide_banner",
+                "-y",
+                "-r",
+                str(framerate),
+                "-start_number",
+                "0",
+                "-i",
+                in_images,
+                "-c:v",
+                "libx264",
+                "-r",
+                str(framerate),
+                "-pix_fmt",
+                "yuv420p",
+                str(output),
+            ],
+        )
+        != 0
+    ):
+        raise RuntimeError("ffmpeg failed, please check the log for errors.")
 
 
 def run_wb_command(scene_path: Path | str, scene_name: str, output_path: Path | str, width: int, height: int) -> None:
@@ -94,20 +103,29 @@ def run_wb_command(scene_path: Path | str, scene_name: str, output_path: Path | 
     height : int
         The height of the output image.
     """
-    run_process(
-        [
-            WB_COMMAND,
-            "-scene-capture-image",
-            str(scene_path),
-            scene_name,
-            str(output_path),
-            "-size-width-height",
-            str(width),
-            str(height),
-        ],
-        {"OMP_NUM_THREADS": "1"},
-        suppress_output=True,
-    )
+    if EXTERNAL_COMMAND_LOG == 1:
+        setup_logging()
+    if (
+        run_process(
+            [
+                WB_COMMAND,
+                "-scene-capture-image",
+                str(scene_path),
+                scene_name,
+                str(output_path),
+                "-size-width-height",
+                str(width),
+                str(height),
+            ],
+            {"OMP_NUM_THREADS": "1"},
+            suppress_output=EXTERNAL_COMMAND_LOG == 0,
+        )
+        != 0
+    ):
+        raise RuntimeError(
+            "Failed to render scene due to failed wb_command call. "
+            "Set EXTERNAL_COMMAND_LOG=1 your environment and then check the log for more error details."
+        )
 
 
 def make_new_scene_frame(

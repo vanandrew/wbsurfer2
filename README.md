@@ -64,6 +64,10 @@ brew install ffmpeg
 >
 > `export WBCOMMAND_BINARY_PATH=/path/to/wb_command`
 
+> [!TIP]
+> If you are encountering an error with the scene rendering step, set `EXTERNAL_COMMAND_LOG=1` in your
+> environment for more verbose details on what is happening to the `wb_command`.
+
 Once it's installed, you can run the `wb_surfer2` command. The following is the help message:
 
 ```bash
