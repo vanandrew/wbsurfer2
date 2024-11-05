@@ -119,4 +119,10 @@ Unlike in version 1 of `wb_surfer`, `wb_surfer2` can handle multiple scenes bein
 active scene can be used at a time). The active scene is set by using the `--scene-name` argument.
 
 When making your scene, at least one vertex must be placed on the surface for `wb_surfer2` to control. In the case of
-multiple vertices, the first vertex that was placed will be manipulated. 
+multiple vertices, the first vertex that was placed will be manipulated.
+
+> [!IMPORTANT]  
+> Make sure you place the active vertex on the surface you want to manipulate. Placing †he active vertex on the wrong
+> surface will result in inaccurate movies.
+>
+> In practice, it's a good idea to have scenes called "left" and "right" so you can switch between hemispheres easily.

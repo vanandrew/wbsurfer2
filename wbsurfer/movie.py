@@ -171,19 +171,17 @@ def generate_movie(
 
     # in vertex mode, convert the vertex indices to row indices
     if vertex_mode:
+        # row_indices are vertex indices
         surface = row_indices.pop(0)
+        vertices = [int(v) for v in row_indices]
         cifti_img = scene.get_cifti_file()
         structure = [
             (str(s[0]), cast(slice, s[1]), cast(BrainModelAxis, s[2]))
             for s in cifti_img.header.get_axis(1).iter_structures()
             if surface in str(s[0])
         ][0]
-        path = np.array(list(map(int, row_indices)))
-        # make sure the vertex indices are within bounds
-        if not np.all((structure[1].start <= path) & (path < structure[1].stop)):
-            raise ValueError("Vertex indices are out of bounds.")
         # convert vertex indices to row indices
-        path = cast(list[int], np.searchsorted(structure[2].vertex, path).tolist())
+        path = cast(list[int], (np.searchsorted(structure[2].vertex, vertices) + structure[1].start).tolist())
     else:  # make sure path is a list of integers
         path = list(map(int, row_indices))
 

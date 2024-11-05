@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BorderFile Version="3" Structure="CORTEX_RIGHT" SurfaceNumberOfVertices="32492">
+    <Class Name="???" Red="1" Green="1" Blue="1">
+        <Border Name="test" Red="0" Green="0" Blue="0">
+            <BorderPart Closed="False">
+                <Vertices>9133 9134 9175
+17251 17208 17252
+16884 16833 16885
+</Vertices>
+                <Weights>0.0511154 1.03175 0.0193632
+0.394967 0.491315 0.113717
+0.11964 0.596052 0.523587
+</Weights>
+            </BorderPart>
+        </Border>
+    </Class>
+</BorderFile>
