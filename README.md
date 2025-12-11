@@ -12,6 +12,14 @@ There are two ways to use `wbsurfer2`. The first and recommended way is to
 download compiled binaries from the [releases page](https://github.com/vanandrew/wbsurfer2/releases).
 Simply download the version meant for your OS and extract it.
 
+> [!IMPORTANT]
+> On macOS, you may get a message saying something like "Apple could not verify your app is free of malware... blah blah".
+> You can get around this by following the instructions on this page: https://support.apple.com/en-us/102445
+> See the section "If you want to open an app that hasn’t been notarized or is from an unidentified developer"
+>
+> Basically, you need to go into you System Settings->Privacy & Security and click the "open anyway" button
+> after trying to run the program once.
+
 If you are more comfortable with Python, you can also install `wbsurfer2` from `pip`.
 
 ```bash
