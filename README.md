@@ -17,7 +17,7 @@ Simply download the version meant for your OS and extract it.
 > You can get around this by following the instructions on this page: https://support.apple.com/en-us/102445
 > See the section "If you want to open an app that hasn’t been notarized or is from an unidentified developer"
 >
-> Basically, you need to go into you System Settings->Privacy & Security and click the "open anyway" button
+> Basically, you need to go into your `System Settings->Privacy & Security` and click the "open anyway" button
 > after trying to run the program once.
 
 If you are more comfortable with Python, you can also install `wbsurfer2` from `pip`.
