@@ -41,19 +41,7 @@ def check_and_mask_medial_wall(
         The vertices and faces with the medial wall masked if needed.
     """
     # get all valid vertices for this hemisphere from the scene
-    cifti = scene.get_cifti_file()
-    vertex_table, _ = scene.get_vertex_and_voxel_table()
-
-    # find the bounds for this hemisphere
-    for structure, bound, _ in cifti.header.get_axis(1).iter_structures():
-        if bound.stop is None:
-            bound = slice(bound.start, cifti.shape[1], None)
-        if str(structure).split("CIFTI_STRUCTURE_")[1] == hemisphere:
-            # get valid vertices for this hemisphere
-            valid_vertices = set(vertex_table[bound].astype(int))
-            break
-    else:
-        raise ValueError(f"Hemisphere '{hemisphere}' not found in CIFTI file.")
+    valid_vertices = scene.get_valid_vertices(hemisphere)
 
     # find medial wall vertices by set difference
     all_vertices = set(range(vertices.shape[0]))

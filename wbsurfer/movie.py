@@ -179,16 +179,18 @@ def generate_movie(
             for s in cifti_img.header.get_axis(1).iter_structures()
             if surface in str(s[0])
         ][0]
-        # validate and append vertices to path
+        # validate and convert vertices to row indices efficiently
+        vertex_to_row = scene.get_vertex_to_row_mapping(surface)
+
+        # convert all vertices to row indices
         path: list[int] = []
         for v in vertices:
-            try:
-                path.append(scene.get_row_from_vertex(surface, v))
-            except ValueError as e:
+            if v not in vertex_to_row:
                 raise ValueError(
                     f"Invalid vertex index '{v}' for surface '{surface}'. "
                     "Check that this vertex is NOT on the medial wall"
-                ) from e
+                )
+            path.append(vertex_to_row[v])
     else:  # make sure path is a list of integers
         path = list(map(int, row_indices))
 
