@@ -16,6 +16,64 @@ from rich.progress import track
 from wbsurfer.scene import Scene
 
 
+def check_and_mask_medial_wall(
+    vertices: NDArray[np.float32],
+    faces: NDArray[np.int32],
+    scene: Scene,
+    hemisphere: str,
+) -> tuple[NDArray[np.float32], NDArray[np.int32]]:
+    """Check and mask the medial wall if needed.
+
+    Parameters
+    ----------
+    vertices : NDArray[np.float32]
+        The vertices of the mesh.
+    faces : NDArray[np.int32]
+        The faces of the mesh.
+    scene : Scene
+        The scene object.
+    hemisphere : str
+        The hemisphere to check.
+
+    Returns
+    -------
+    tuple[NDArray[np.float32], NDArray[np.int32]]
+        The vertices and faces with the medial wall masked if needed.
+    """
+    # get all valid vertices for this hemisphere from the scene
+    cifti = scene.get_cifti_file()
+    vertex_table, _ = scene.get_vertex_and_voxel_table()
+
+    # find the bounds for this hemisphere
+    for structure, bound, _ in cifti.header.get_axis(1).iter_structures():
+        if bound.stop is None:
+            bound = slice(bound.start, cifti.shape[1], None)
+        if str(structure).split("CIFTI_STRUCTURE_")[1] == hemisphere:
+            # get valid vertices for this hemisphere
+            valid_vertices = set(vertex_table[bound].astype(int))
+            break
+    else:
+        raise ValueError(f"Hemisphere '{hemisphere}' not found in CIFTI file.")
+
+    # find medial wall vertices by set difference
+    all_vertices = set(range(vertices.shape[0]))
+    medial_wall_vertices = all_vertices - valid_vertices
+
+    # if no medial wall vertices, return original vertices and faces
+    if not medial_wall_vertices:
+        return vertices, faces
+
+    # filter out faces that reference any medial wall vertices
+    new_faces = []
+    for face in faces:
+        # only keep faces where all vertices are NOT in the medial wall
+        if all(v not in medial_wall_vertices for v in face):
+            new_faces.append(face)
+
+    # return the original vertices and filtered faces
+    return vertices, np.array(new_faces, dtype=np.int32)
+
+
 def remove_dupicate_indices_from_path(path: list[np.integer]) -> list[int]:
     """Removes duplicate indices from a path.
 
@@ -58,21 +116,25 @@ def get_continuous_path(path: list[int], scene: Scene) -> list[int]:
     continuous_path = []
     # initialize gpath object
     gpath = None
+    # get hemisphere for first point
+    hemisphere = scene.get_hemisphere_from_row(path[0])
+    # load gifti file
+    gifti_file = scene.get_hemisphere_gifti_filename(hemisphere)
+    # get vertices and faces
+    vertices = cast(NDArray[np.float32], GiftiImage.load(gifti_file).darrays[0].data)
+    faces = cast(NDArray[np.int32], GiftiImage.load(gifti_file).darrays[1].data)
+    # check and mask the medial wall
+    vertices, faces = check_and_mask_medial_wall(vertices, faces, scene, hemisphere)
+    # get geodesic path object
+    gpath = GeodesicPath(vertices, faces)
     # loop through pairs of points on the path
     for point_1, point_2 in track(zip(path[:-1], path[1:]), description="Calculating path...", total=len(path) - 1):
         # first find the hemisphere of the first point and second point
         hemisphere_1 = scene.get_hemisphere_from_row(point_1)
         hemisphere_2 = scene.get_hemisphere_from_row(point_2)
-        if hemisphere_1 != hemisphere_2:
+        # check that it matches the first hemisphere
+        if hemisphere != hemisphere_1 or hemisphere != hemisphere_2:
             raise ValueError("Path crosses hemispheres")
-        # load gifti file
-        gifti_file = scene.get_hemisphere_gifti_filename(hemisphere_1)
-        # get vertices and faces
-        vertices = cast(NDArray[np.float32], GiftiImage.load(gifti_file).darrays[0].data)
-        faces = cast(NDArray[np.int32], GiftiImage.load(gifti_file).darrays[1].data)
-        # get path between points
-        if gpath is None:
-            gpath = GeodesicPath(vertices, faces)
         vertex1, vertex2 = scene.get_vertex_from_row(point_1), scene.get_vertex_from_row(point_2)
         interpolated_path = gpath.as_nearest_index(gpath.path(vertex1, vertex2))
         continuous_path.extend([int(p) for p in interpolated_path])

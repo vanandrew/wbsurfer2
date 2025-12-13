@@ -7,7 +7,6 @@ from shutil import copyfile
 from tempfile import TemporaryDirectory
 from typing import cast
 
-import numpy as np
 from nibabel.cifti2.cifti2_axes import BrainModelAxis
 from rich.progress import track
 
@@ -180,8 +179,16 @@ def generate_movie(
             for s in cifti_img.header.get_axis(1).iter_structures()
             if surface in str(s[0])
         ][0]
-        # convert vertex indices to row indices
-        path = cast(list[int], (np.searchsorted(structure[2].vertex, vertices) + structure[1].start).tolist())
+        # validate and append vertices to path
+        path: list[int] = []
+        for v in vertices:
+            try:
+                path.append(scene.get_row_from_vertex(surface, v))
+            except ValueError as e:
+                raise ValueError(
+                    f"Invalid vertex index '{v}' for surface '{surface}'. "
+                    "Check that this vertex is NOT on the medial wall"
+                ) from e
     else:  # make sure path is a list of integers
         path = list(map(int, row_indices))
 

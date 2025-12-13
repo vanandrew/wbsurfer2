@@ -61,6 +61,7 @@ def run_ffmpeg(in_images: str, output: Path | str, framerate: int) -> None:
     framerate : int
         The framerate of the output movie.
     """
+    print("Encoding movie with ffmpeg...")
     if (
         run_process(
             [
@@ -85,6 +86,7 @@ def run_ffmpeg(in_images: str, output: Path | str, framerate: int) -> None:
         != 0
     ):
         raise RuntimeError("ffmpeg failed, please check the log for errors.")
+    print(f"Movie saved to {output}.")
 
 
 def run_wb_command(scene_path: Path | str, scene_name: str, output_path: Path | str, width: int, height: int) -> None:
