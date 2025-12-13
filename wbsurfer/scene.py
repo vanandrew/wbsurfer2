@@ -108,10 +108,10 @@ class Scene:
     def get_vertex_and_voxel_table(self) -> tuple[NDArray[float64], NDArray[float64]]:
         """Get the vertex index from the given row index.
 
-        Parameters
-        ----------
-        row : int
-            The row index to get the vertex index from.
+        Returns
+        -------
+        tuple[NDArray[float64], NDArray[float64]]
+            The vertex and voxel tables respectively.
         """
         # load the CIFTI file
         cifti = self.get_cifti_file()
@@ -126,6 +126,87 @@ class Scene:
         vertex_table, _ = self.get_vertex_and_voxel_table()
         # return the vertex index
         return vertex_table[row]
+
+    def get_row_from_vertex(self, hemisphere: str, vertex: int) -> int:
+        """Returns the equivalent row index from the given vertex index."""
+        # load the cifti file
+        cifti = self.get_cifti_file()
+        # iter_structures
+        match = False
+        structure = None
+        for structure, bound, _ in cifti.header.get_axis(1).iter_structures():
+            if bound.stop is None:
+                bound = slice(bound.start, cifti.shape[1], None)
+            if str(structure).split("CIFTI_STRUCTURE_")[1] == hemisphere:
+                match = True
+                break
+        # return error if no match
+        if not match:
+            raise ValueError(f"Hemisphere '{hemisphere}' not found in CIFTI file.")
+        # get vertex table
+        vertex_table, _ = self.get_vertex_and_voxel_table()
+        # get row indices for the hemisphere
+        row_indices = np.arange(bound.start, bound.stop)
+        hemisphere_vertex_table = vertex_table[bound]
+        # find the row index for the given vertex
+        row_index = row_indices[np.where(hemisphere_vertex_table == vertex)[0]]
+        if len(row_index) == 0:
+            raise ValueError(f"Vertex index '{vertex}' not found in hemisphere '{hemisphere}'.")
+        return int(row_index[0])
+
+    def get_valid_vertices(self, hemisphere: str) -> set[int]:
+        """Get all valid vertex indices for a hemisphere.
+
+        Parameters
+        ----------
+        hemisphere : str
+            The hemisphere to get valid vertices for.
+
+        Returns
+        -------
+        set[int]
+            Set of valid vertex indices for the hemisphere.
+        """
+        cifti = self.get_cifti_file()
+        vertex_table, _ = self.get_vertex_and_voxel_table()
+
+        # find the bounds for this hemisphere
+        for structure, bound, _ in cifti.header.get_axis(1).iter_structures():
+            if bound.stop is None:
+                bound = slice(bound.start, cifti.shape[1], None)
+            if str(structure).split("CIFTI_STRUCTURE_")[1] == hemisphere:
+                # get valid vertices for this hemisphere
+                return set(vertex_table[bound].astype(int))
+
+        raise ValueError(f"Hemisphere '{hemisphere}' not found in CIFTI file.")
+
+    def get_vertex_to_row_mapping(self, hemisphere: str) -> dict[int, int]:
+        """Get mapping from vertex indices to row indices for a hemisphere.
+
+        Parameters
+        ----------
+        hemisphere : str
+            The hemisphere to get the mapping for.
+
+        Returns
+        -------
+        dict[int, int]
+            Dictionary mapping vertex indices to row indices.
+        """
+        cifti = self.get_cifti_file()
+        vertex_table, _ = self.get_vertex_and_voxel_table()
+
+        # find the bounds for this hemisphere
+        for structure, bound, _ in cifti.header.get_axis(1).iter_structures():
+            if bound.stop is None:
+                bound = slice(bound.start, cifti.shape[1], None)
+            if str(structure).split("CIFTI_STRUCTURE_")[1] == hemisphere:
+                # create mapping from vertex index to row index
+                row_indices_range = range(bound.start, bound.stop)
+                hemisphere_vertex_table = vertex_table[bound]
+                return {int(v): r for v, r in zip(hemisphere_vertex_table, row_indices_range)}
+
+        raise ValueError(f"Hemisphere '{hemisphere}' not found in CIFTI file.")
 
     @staticmethod
     def change_tuple_index_element(element: ET.Element, value: Iterable[Any]) -> None:
