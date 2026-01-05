@@ -33,6 +33,9 @@ jobs:
           uv run coverage run -m pytest tests/
           uv run coverage report
           uv run coverage xml
+        env:
+          WBCOMMAND_BINARY_PATH: /dummy/command
+          FFMPEG_BINARY_PATH: /dummy/ffmpeg
       - name: Upload coverage reports
         uses: codecov/codecov-action@v5
         if: always()
@@ -41,8 +44,6 @@ jobs:
           fail_ci_if_error: false
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-          WBCOMMAND_BINARY_PATH: /dummy/command
-          FFMPEG_BINARY_PATH: /dummy/ffmpeg
   build-wheel:
     name: Build and Upload Wheel
     runs-on: ubuntu-latest
