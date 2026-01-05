@@ -35,7 +35,7 @@ class Scene:
         self.base_path = self.scene_path.parent
 
         # load the scene file
-        self.tree = ET.parse(self.scene_path)
+        self.tree = cast(ET.ElementTree, ET.parse(self.scene_path))
 
         # if scene name is provided, store it
         self.scene_name = name
@@ -47,9 +47,9 @@ class Scene:
         """Get the Scene subtree from the Scene file."""
         # check scene name is provided, if None just return the root node
         if self.scene_name is None:
-            return self.tree.getroot()
+            return cast(ET.Element, self.tree.getroot())
         # get the scene node with the given name
-        root = self.tree.getroot()
+        root = cast(ET.Element, self.tree.getroot())
         scenes = root.findall(".//Scene[@Type='SCENE_TYPE_FULL']")
         for scene in scenes:
             if scene is None:
@@ -69,8 +69,12 @@ class Scene:
         return [
             *root.findall(".//Object[@Type='pathName'][@Name='dataFileName_V2']"),
             *root.findall(".//Object[@Type='pathName'][@Name='fileName']"),
-            *root.findall(".//Object[@Type='pathName'][@Name='m_selectedSurfacePathName']"),
-            *root.findall(".//Object[@Type='pathName'][@Name='primaryAnatomicalSurface']"),
+            *root.findall(
+                ".//Object[@Type='pathName'][@Name='m_selectedSurfacePathName']"
+            ),
+            *root.findall(
+                ".//Object[@Type='pathName'][@Name='primaryAnatomicalSurface']"
+            ),
         ]
 
     def convert_relative_to_absolute(self) -> None:
@@ -90,7 +94,11 @@ class Scene:
             The extension of the files to return.
         """
         filenames = self.get_path_elements()
-        return [Path(f.text) for f in filenames if f.text is not None and f.text.endswith(ext)]
+        return [
+            Path(f.text)
+            for f in filenames
+            if f.text is not None and f.text.endswith(ext)
+        ]
 
     def get_cifti_file(self) -> Cifti2Image:
         """Returns the first CIFTI file found in the scene."""
@@ -134,6 +142,7 @@ class Scene:
         # iter_structures
         match = False
         structure = None
+        bound = slice(0, 0)
         for structure, bound, _ in cifti.header.get_axis(1).iter_structures():
             if bound.stop is None:
                 bound = slice(bound.start, cifti.shape[1], None)
@@ -151,7 +160,9 @@ class Scene:
         # find the row index for the given vertex
         row_index = row_indices[np.where(hemisphere_vertex_table == vertex)[0]]
         if len(row_index) == 0:
-            raise ValueError(f"Vertex index '{vertex}' not found in hemisphere '{hemisphere}'.")
+            raise ValueError(
+                f"Vertex index '{vertex}' not found in hemisphere '{hemisphere}'."
+            )
         return int(row_index[0])
 
     def get_valid_vertices(self, hemisphere: str) -> set[int]:
@@ -204,7 +215,10 @@ class Scene:
                 # create mapping from vertex index to row index
                 row_indices_range = range(bound.start, bound.stop)
                 hemisphere_vertex_table = vertex_table[bound]
-                return {int(v): r for v, r in zip(hemisphere_vertex_table, row_indices_range)}
+                return {
+                    int(v): r
+                    for v, r in zip(hemisphere_vertex_table, row_indices_range)
+                }
 
         raise ValueError(f"Hemisphere '{hemisphere}' not found in CIFTI file.")
 
@@ -246,14 +260,18 @@ class Scene:
 
         # this is a surface row
         if vertex_index != -1:
-            root = self.tree.getroot()
+            root = cast(ET.Element, self.tree.getroot())
             row_index_elements = root.findall(".//Object[@Name='m_rowIndex']")
             for element in row_index_elements:
                 element.text = str(row)
-            surface_vertex_index_elements = root.findall(".//Object[@Name='m_surfaceVertexIndex']")
+            surface_vertex_index_elements = root.findall(
+                ".//Object[@Name='m_surfaceVertexIndex']"
+            )
             for element in surface_vertex_index_elements:
                 element.text = str(vertex_index)
-            surface_node_index_elements = root.findall(".//ObjectArray[@Name='m_surfaceNodeIndices']")
+            surface_node_index_elements = root.findall(
+                ".//ObjectArray[@Name='m_surfaceNodeIndices']"
+            )
             for element in surface_node_index_elements:
                 subelement = element.find("./Element[@Index='0']")
                 if subelement is None:
@@ -263,7 +281,7 @@ class Scene:
         elif not (np.array(voxel_index) == -1).all():  # this is a volume row
             affine = self.get_cifti_file().header.get_axis(1).affine
             coords = apply_affine(affine, np.array(voxel_index))
-            root = self.tree.getroot()
+            root = cast(ET.Element, self.tree.getroot())
             row_index_elements = root.findall(".//Object[@Name='m_rowIndex']")
             for element in row_index_elements:
                 element.text = str(row)
@@ -273,20 +291,30 @@ class Scene:
             volume_xyz_elements = root.findall(".//ObjectArray[@Name='m_volumeXYZ']")
             for element in volume_xyz_elements:
                 self.change_tuple_index_element(element, coords)
-            stereotaxic_xyz_elements = root.findall(".//ObjectArray[@Name='m_stereotaxicXYZ']")
+            stereotaxic_xyz_elements = root.findall(
+                ".//ObjectArray[@Name='m_stereotaxicXYZ']"
+            )
             for element in stereotaxic_xyz_elements:
                 self.change_tuple_index_element(element, coords)
-            slice_coordinate_axial_elements = root.findall(".//Object[@Name='m_sliceCoordinateAxial']")
+            slice_coordinate_axial_elements = root.findall(
+                ".//Object[@Name='m_sliceCoordinateAxial']"
+            )
             for element in slice_coordinate_axial_elements:
                 element.text = str(coords[2])
-            slice_coordinate_coronal_elements = root.findall(".//Object[@Name='m_sliceCoordinateCoronal']")
+            slice_coordinate_coronal_elements = root.findall(
+                ".//Object[@Name='m_sliceCoordinateCoronal']"
+            )
             for element in slice_coordinate_coronal_elements:
                 element.text = str(coords[1])
-            slice_coordinate_parasagittal_elements = root.findall(".//Object[@Name='m_sliceCoordinateParasagittal']")
+            slice_coordinate_parasagittal_elements = root.findall(
+                ".//Object[@Name='m_sliceCoordinateParasagittal']"
+            )
             for element in slice_coordinate_parasagittal_elements:
                 element.text = str(coords[0])
 
-    def get_hemisphere_from_row(self, row: int) -> Literal["CORTEX_LEFT", "CORTEX_RIGHT"]:
+    def get_hemisphere_from_row(
+        self, row: int
+    ) -> Literal["CORTEX_LEFT", "CORTEX_RIGHT"]:
         """Same as get_structure_from_row, but raises error on non-hemisphere."""
         structure = self.get_structure_from_row(row)
         if structure not in ["CORTEX_LEFT", "CORTEX_RIGHT"]:
@@ -316,12 +344,16 @@ class Scene:
 
         # return error if no match
         if not match:
-            raise IndexError(f"Row index out of bounds, max row is {cifti.shape[1]-1}.")
+            raise IndexError(
+                f"Row index out of bounds, max row is {cifti.shape[1] - 1}."
+            )
 
         # test if CORTEX_LEFT or CORTEX_RIGHT or neither
         return str(structure).split("CIFTI_STRUCTURE_")[1]
 
-    def get_hemisphere_gifti_filename(self, hemi: Literal["CORTEX_LEFT", "CORTEX_RIGHT"]) -> Path:
+    def get_hemisphere_gifti_filename(
+        self, hemi: Literal["CORTEX_LEFT", "CORTEX_RIGHT"]
+    ) -> Path:
         """Get the filename of the hemisphere surface."""
         # get root
         root = self.get_scene_subtree()
@@ -333,12 +365,16 @@ class Scene:
         surface_paths: dict[str, Path] = {}
         for surf_name in ["CORTEX_LEFT", "CORTEX_RIGHT"]:
             for obj in brain_structures:
-                element = obj.find("./Object[@Type='enumeratedType'][@Name='m_structure']")
+                element = obj.find(
+                    "./Object[@Type='enumeratedType'][@Name='m_structure']"
+                )
                 if element is None:
                     continue
                 if element.text != surf_name:
                     continue
-                gifti_path = obj.find("./Object[@Type='pathName'][@Name='primaryAnatomicalSurface']")
+                gifti_path = obj.find(
+                    "./Object[@Type='pathName'][@Name='primaryAnatomicalSurface']"
+                )
                 if gifti_path is None:
                     continue
                 if gifti_path.text is None:

@@ -18,14 +18,10 @@ dependencies = [
 ]
 dynamic = ["version"]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
-    "black >= 24.10.0",
     "coverage[toml] >= 7.6.2",
-    "isort >= 5.13.2",
-    "pylint >= 3.3.1",
     "pytest >= 8.3.3",
-    "pyupgrade >= 3.18.0",
 ]
 
 [project.scripts]
@@ -44,13 +40,6 @@ include = ["wbsurfer*"]
 [tool.setuptools]
 zip-safe = true
 
-[tool.black]
-target-version = ["py310"]
-line-length = 120
-
-[tool.isort]
-profile = "black"
-
 [tool.pytest.ini_options]
 addopts = "-v"
 testpaths = ["tests"]
@@ -62,14 +51,3 @@ source = ["wbsurfer"]
 [tool.coverage.report]
 show_missing = true
 precision = 2
-
-[tool.pylint.format]
-max-line-length = 120
-
-[tool.pylint."messages control"]
-disable = "all"
-enable = ["line-too-long", "missing-class-docstring", "missing-function-docstring", "unused-import"]
-score = false
-
-[tool.mypy]
-plugins = "numpy.typing.mypy_plugin"

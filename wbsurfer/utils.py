@@ -35,7 +35,13 @@ def find_command(command: str, env_var: str | None = None) -> Path:
     if command_path is None:
         # try automatically finding command from shell
         try:
-            output = run(f"command -v {command}", shell=True, capture_output=True, text=True, check=True)
+            output = run(
+                f"command -v {command}",
+                shell=True,
+                capture_output=True,
+                text=True,
+                check=True,
+            )
             command_path = str(Path(output.stdout.strip()).resolve())
         except CalledProcessError as e:
             raise FileNotFoundError(
@@ -89,7 +95,13 @@ def run_ffmpeg(in_images: str, output: Path | str, framerate: int) -> None:
     print(f"Movie saved to {output}.")
 
 
-def run_wb_command(scene_path: Path | str, scene_name: str, output_path: Path | str, width: int, height: int) -> None:
+def run_wb_command(
+    scene_path: Path | str,
+    scene_name: str,
+    output_path: Path | str,
+    width: int,
+    height: int,
+) -> None:
     """Run wb_command with a command and arguments.
 
     Parameters

@@ -24,7 +24,6 @@ def bresenham3d(v0: NDArray[np.int_], v1: NDArray[np.int_]) -> NDArray[np.int_]:
         The line array.
     """
     # initialize axis differences
-
     dx = np.abs(v1[0] - v0[0])
     dy = np.abs(v1[1] - v0[1])
     dz = np.abs(v1[2] - v0[2])
@@ -63,6 +62,8 @@ def bresenham3d(v0: NDArray[np.int_], v1: NDArray[np.int_]) -> NDArray[np.int_]:
         a0 = 2
         a1 = 0
         a2 = 1
+    else:
+        raise RuntimeError("Unexpected error in bresenham3d")
 
     # create line array
     line = np.zeros((d0 + 1, 3), dtype=np.int64)
@@ -88,7 +89,9 @@ def bresenham3d(v0: NDArray[np.int_], v1: NDArray[np.int_]) -> NDArray[np.int_]:
     return line
 
 
-def volume_interpolation(path: list[int], scene: Scene) -> list[int]:
+def volume_interpolation(
+    path: list[int], scene: Scene, suppress_progress: bool = False
+) -> list[int]:
     """Interpolates a path in a volume.
 
     Parameters
@@ -97,6 +100,8 @@ def volume_interpolation(path: list[int], scene: Scene) -> list[int]:
         The path to interpolate the volume of.
     scene : Scene
         The scene object.
+    suppress_progress : bool
+        Whether to suppress the progress bar.
 
     Returns
     -------
@@ -107,7 +112,12 @@ def volume_interpolation(path: list[int], scene: Scene) -> list[int]:
     interpolated_path = []
 
     # loop through pairs of points on the path
-    for point_1, point_2 in track(zip(path[:-1], path[1:]), description="Interpolating path...", total=len(path) - 1):
+    for point_1, point_2 in track(
+        zip(path[:-1], path[1:]),
+        description="Interpolating path...",
+        total=len(path) - 1,
+        disable=suppress_progress,
+    ):
         # first ensure they are in the same structure
         structure_1 = scene.get_structure_from_row(point_1)
         structure_2 = scene.get_structure_from_row(point_2)
@@ -121,7 +131,9 @@ def volume_interpolation(path: list[int], scene: Scene) -> list[int]:
         coords = bresenham3d(coord_1, coord_2)
         # find row indices from coords
         interpolated = [
-            int(np.where((voxel_table == c).all(axis=1))[0][0]) for c in coords if (voxel_table == c).all(axis=1).any()
+            int(np.where((voxel_table == c).all(axis=1))[0][0])
+            for c in coords
+            if (voxel_table == c).all(axis=1).any()
         ]
         # get the interpolated path
         interpolated_path.extend(interpolated[:-1])

@@ -1,24 +1,14 @@
 repos:
-- repo: local
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.12.10
   hooks:
-    - id: pyupgrade
-      name: pyupgrade
-      entry: pyupgrade --py310-plus
-      language: system
-      types: [python]
-    - id: black
-      name: black
-      entry: black
-      language: system
-      types: [python]
-    - id: isort
-      name: isort
-      entry: isort
-      language: system
-      types: [python]
-    - id: pylint
-      name: pylint
-      entry: pylint
-      language: system
-      types: [python]
+      - id: ruff
+        name: ruff
+        entry: ruff check
+        types: [python]
+        args: [--fix]
+      - id: ruff-format
+        name: ruff-format
+        entry: ruff format
+        types: [python]
     

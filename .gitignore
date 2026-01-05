@@ -164,6 +164,9 @@ cython_debug/
 # ignore .DS_Store files
 **/.DS_Store
 
+.ruff_cache/
+.claude/
+
 # ignore my test files
 test.mp4
 

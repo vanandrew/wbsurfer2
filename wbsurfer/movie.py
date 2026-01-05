@@ -37,7 +37,7 @@ def process_frames(
     output : Path
         The output file path.
     path : list[int]
-        The path to process.
+        The path to process. A list of row indices to generate frames for.
     scene : Scene
         The scene object.
     scene_name : str
@@ -73,8 +73,14 @@ def process_frames(
                         make_new_scene_frame,
                         [scene.scene_path] * len(path),
                         [scene_name] * len(path),
-                        [scenes_path / f"frame{idx:09d}.scene" for idx in range(len(path))],
-                        [frames_path / f"frame{idx:09d}.png" for idx in range(len(path))],
+                        [
+                            scenes_path / f"frame{idx:09d}.scene"
+                            for idx in range(len(path))
+                        ],
+                        [
+                            frames_path / f"frame{idx:09d}.png"
+                            for idx in range(len(path))
+                        ],
                         [width] * len(path),
                         [height] * len(path),
                         path,
@@ -107,7 +113,7 @@ def generate_movie(
     row_indices: list[str],
     scene_path: Path | str,
     scene_name: str,
-    output: Path | str,
+    output: Path | str | None = None,
     closed: bool = False,
     reverse: bool = False,
     loops: int = 1,
@@ -116,6 +122,8 @@ def generate_movie(
     width: int = 1920,
     height: int = 1080,
     framerate: int = 10,
+    print_vertices: bool = False,
+    print_rows: bool = False,
     num_cpus: int = 1,
 ):
     """Generate a movie from a list of row indices.
@@ -154,7 +162,7 @@ def generate_movie(
     """
     # convert to Path objects
     scene_path = Path(scene_path)
-    output = Path(output)
+    output = Path(output) if output is not None else Path("output.mp4")
 
     # load scene
     scene = Scene(scene_path, scene_name)
@@ -205,7 +213,31 @@ def generate_movie(
 
     # first compute the continuous path
     if structure == "CORTEX_LEFT" or structure == "CORTEX_RIGHT":  # surface
-        continuous_path = get_continuous_path(path, scene)
+        continuous_path = get_continuous_path(
+            path, scene, suppress_progress=print_rows or print_vertices
+        )
     else:  # volume
-        continuous_path = volume_interpolation(path, scene)
-    process_frames(output, continuous_path, scene, scene_name, width, height, framerate, loops, num_cpus)
+        continuous_path = volume_interpolation(
+            path, scene, suppress_progress=print_rows or print_vertices
+        )
+
+    if print_rows:
+        print(" ".join([str(r) for r in continuous_path]))
+        return
+    if print_vertices:
+        # convert row indices to vertex indices using vertex table
+        vertex_table, _ = scene.get_vertex_and_voxel_table()
+        print(" ".join(str(vertex_table[r]) for r in continuous_path))
+        return
+
+    process_frames(
+        output,
+        continuous_path,
+        scene,
+        scene_name,
+        width,
+        height,
+        framerate,
+        loops,
+        num_cpus,
+    )

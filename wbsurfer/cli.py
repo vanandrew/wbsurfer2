@@ -14,18 +14,43 @@ def main():
 
     # create the argument parser
     parser = ArgumentParser(description="Generate a movie from a list of row indices.")
-    parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {__version__}")
-    parser.add_argument("-s", "--scene-path", required=True, type=str, help="The scene file to use.")
-    parser.add_argument("-n", "--scene-name", required=True, type=str, help="The name of the scene in the scene file.")
-    parser.add_argument("-o", "--output", required=True, type=str, help="The output file path. Should end in .mp4.")
     parser.add_argument(
-        "--width", type=int, default=1920, help="The width of the output movie. By default, 1920 pixels."
+        "-v", "--version", action="version", version=f"%(prog)s {__version__}"
     )
     parser.add_argument(
-        "--height", type=int, default=1080, help="The height of the output movie. By default, 1080 pixels."
+        "-s", "--scene-path", required=True, type=str, help="The scene file to use."
     )
     parser.add_argument(
-        "-r", "--framerate", type=int, default=10, help="The framerate of the output movie. By default, 10 FPS."
+        "-n",
+        "--scene-name",
+        required=True,
+        type=str,
+        help="The name of the scene in the scene file.",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        help="The output file path. Should end in .mp4.",
+    )
+    parser.add_argument(
+        "--width",
+        type=int,
+        default=1920,
+        help="The width of the output movie. By default, 1920 pixels.",
+    )
+    parser.add_argument(
+        "--height",
+        type=int,
+        default=1080,
+        help="The height of the output movie. By default, 1080 pixels.",
+    )
+    parser.add_argument(
+        "-r",
+        "--framerate",
+        type=int,
+        default=10,
+        help="The framerate of the output movie. By default, 10 FPS.",
     )
     path_mods = parser.add_mutually_exclusive_group()
     path_mods.add_argument(
@@ -41,9 +66,29 @@ def main():
         "exclusive with --closed.",
     )
     parser.add_argument(
-        "-l", "--loops", type=int, default=1, help="How many times to loop the movie. By default, 1 loop."
+        "-l",
+        "--loops",
+        type=int,
+        default=1,
+        help="How many times to loop the movie. By default, 1 loop.",
     )
-    parser.add_argument("--num-cpus", type=int, default=1, help="The number of CPUs to use for processing.")
+    print_mode = parser.add_mutually_exclusive_group()
+    print_mode.add_argument(
+        "--print-vertices",
+        action="store_true",
+        help="If enabled, the vertex indices will be printed to the console, instead of outputting a movie.",
+    )
+    print_mode.add_argument(
+        "--print-rows",
+        action="store_true",
+        help="If enabled, the row indices will be printed to the console, instead of outputting a movie.",
+    )
+    parser.add_argument(
+        "--num-cpus",
+        type=int,
+        default=1,
+        help="The number of CPUs to use for processing.",
+    )
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument(
         "--vertex-mode",
@@ -57,7 +102,11 @@ def main():
         help="If enabled, the border file will be used to generate the movie. The row_indices argument should be the "
         "border file. Mutually exclusive with --vertex-mode.",
     )
-    parser.add_argument("row_indices", nargs="+", help="The list of row indices to generate the movie from.")
+    parser.add_argument(
+        "row_indices",
+        nargs="+",
+        help="The list of row indices to generate the movie from.",
+    )
     args = parser.parse_args()
 
     # check that at least 2 row indices are provided
@@ -68,6 +117,10 @@ def main():
 
     # setup logging
     setup_logging()
+
+    # if print mode is not on output is required
+    if not (args.print_rows or args.print_vertices) and not args.output:
+        parser.error("--output [output file] must be specified.")
 
     # generate the movie
     generate_movie(**vars(args))

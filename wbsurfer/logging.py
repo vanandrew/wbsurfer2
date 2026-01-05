@@ -6,7 +6,9 @@ from subprocess import DEVNULL, PIPE, STDOUT, Popen
 logger = logging.getLogger(__name__)
 
 
-def run_process(cmd: list[str], env: dict[str, str] | None = None, suppress_output: bool = False) -> int:
+def run_process(
+    cmd: list[str], env: dict[str, str] | None = None, suppress_output: bool = False
+) -> int:
     """Run a shell command and capture stdout and stderr as it runs, logging in real-time.
 
     Parameters
@@ -66,10 +68,16 @@ def setup_logging(log_file: str | None = None) -> None:
         log_file_path.parent.mkdir(parents=True, exist_ok=True)
 
         # append to handlers
-        handlers.append(logging.FileHandler(str(log_file_path), mode="w"))  # will overwrite logs if they exist at path
+        handlers.append(
+            logging.FileHandler(str(log_file_path), mode="w")
+        )  # will overwrite logs if they exist at path
 
     # add stdout streaming to handlers
     handlers.append(logging.StreamHandler(sys.stdout))
 
     # setup log output config
-    logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(levelname)s: %(message)s", handlers=handlers)
+    logging.basicConfig(
+        level=logging.INFO,
+        format="[%(asctime)s] %(levelname)s: %(message)s",
+        handlers=handlers,
+    )
