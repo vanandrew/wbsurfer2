@@ -3,7 +3,7 @@ name: Main Workflow
 on:
   push:
     branches:
-      - "*"
+      - "main"
   pull_request:
     branches:
       - "*"
@@ -15,9 +15,39 @@ permissions:
   contents: write
 
 jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          uv sync --dev
+      - name: Run tests with coverage
+        run: |
+          uv run coverage run -m pytest tests/
+          uv run coverage report
+          uv run coverage xml
+        env:
+          WBCOMMAND_BINARY_PATH: /dummy/command
+          FFMPEG_BINARY_PATH: /dummy/ffmpeg
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v5
+        if: always()
+        with:
+          files: ./coverage.xml
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   build-wheel:
     name: Build and Upload Wheel
     runs-on: ubuntu-latest
+    needs: [test]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,6 +65,7 @@ jobs:
   pyinstaller-build-linux:
     name: PyInstaller Build (Linux)
     runs-on: ubuntu-latest
+    needs: [test]
     container:
       image: quay.io/pypa/manylinux_2_28_x86_64:latest
     steps:
@@ -66,6 +97,7 @@ jobs:
   pyinstaller-build-macos:
     name: PyInstaller Build (macOS)
     runs-on: macos-latest
+    needs: [test]
     steps:
       - name: Checkout
         uses: actions/checkout@v4

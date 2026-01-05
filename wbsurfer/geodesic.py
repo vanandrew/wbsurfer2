@@ -85,7 +85,9 @@ def remove_dupicate_indices_from_path(path: list[np.integer]) -> list[int]:
     return nodups_path
 
 
-def get_continuous_path(path: list[int], scene: Scene) -> list[int]:
+def get_continuous_path(
+    path: list[int], scene: Scene, suppress_progress: bool = False
+) -> list[int]:
     """Takes a list of indices on a mesh and returns a continuous path.
 
     Parameters
@@ -94,6 +96,8 @@ def get_continuous_path(path: list[int], scene: Scene) -> list[int]:
         The list of row indices to process
     scene : Scene
         The scene object containing the mesh.
+    suppress_progress : bool
+        Whether to suppress the progress bar.
 
     Returns
     -------
@@ -116,14 +120,22 @@ def get_continuous_path(path: list[int], scene: Scene) -> list[int]:
     # get geodesic path object
     gpath = GeodesicPath(vertices, faces)
     # loop through pairs of points on the path
-    for point_1, point_2 in track(zip(path[:-1], path[1:]), description="Calculating path...", total=len(path) - 1):
+    for point_1, point_2 in track(
+        zip(path[:-1], path[1:]),
+        description="Calculating path...",
+        total=len(path) - 1,
+        disable=suppress_progress,
+    ):
         # first find the hemisphere of the first point and second point
         hemisphere_1 = scene.get_hemisphere_from_row(point_1)
         hemisphere_2 = scene.get_hemisphere_from_row(point_2)
         # check that it matches the first hemisphere
         if hemisphere != hemisphere_1 or hemisphere != hemisphere_2:
             raise ValueError("Path crosses hemispheres")
-        vertex1, vertex2 = scene.get_vertex_from_row(point_1), scene.get_vertex_from_row(point_2)
+        vertex1, vertex2 = (
+            scene.get_vertex_from_row(point_1),
+            scene.get_vertex_from_row(point_2),
+        )
         interpolated_path = gpath.as_nearest_index(gpath.path(vertex1, vertex2))
         continuous_path.extend([int(p) for p in interpolated_path])
     # return the continuous path, removing duplicates
@@ -261,7 +273,9 @@ class GeodesicPath:
             edges.append(e)
         return edges
 
-    def as_nearest_index(self, path: list[EdgePoint], remove_duplicates: bool = True) -> NDArray[np.int64]:
+    def as_nearest_index(
+        self, path: list[EdgePoint], remove_duplicates: bool = True
+    ) -> NDArray[np.int64]:
         """Returns the nearest index of each edge point in the path.
 
         Parameters
