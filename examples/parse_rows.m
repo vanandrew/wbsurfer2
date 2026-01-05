@@ -1,3 +1,7 @@
+%
+% Example MATLAB script to parse a path from the wb_surfer2 command
+%
+
 
 clc;
 clear;
