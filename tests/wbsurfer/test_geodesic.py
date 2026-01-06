@@ -294,3 +294,41 @@ def test_get_continuous_path_with_offset(dtseries_scene: Path):
         # The vertex should map back to the correct row
         recovered_row = scene.get_row_from_vertex("CORTEX_LEFT", int(vertex))
         assert recovered_row == row_idx
+
+
+def test_get_continuous_path_with_offset_right_hemisphere(dtseries_scene: Path):
+    """Test that continuous path correctly handles right hemisphere offsets.
+
+    This specifically tests the bug where right hemisphere row indices
+    were incorrectly returning left hemisphere vertices.
+    """
+    # load the scene
+    scene = Scene(dtseries_scene)
+
+    # Get vertex table and hemisphere information
+    vertex_table, _ = scene.get_vertex_and_voxel_table()
+
+    # Find surface rows for right hemisphere
+    right_start, right_stop = scene.get_hemisphere_row_offset("CORTEX_RIGHT")
+    right_rows = [i for i in range(right_start, min(right_start + 30, right_stop))]
+
+    # Create a path in the right hemisphere
+    path = right_rows[::10]  # Sample every 10th row
+
+    # Get continuous path
+    continuous = get_continuous_path(path, scene, suppress_progress=True)
+
+    # Verify all returned indices are within the right hemisphere range
+    assert all(right_start <= i < right_stop for i in continuous)
+
+    # Verify the vertices in the continuous path are valid
+    for row_idx in continuous:
+        vertex = vertex_table[row_idx]
+        assert vertex >= 0, f"Row {row_idx} should have a valid vertex"
+
+    # Verify mapping back from vertex to row works correctly
+    for row_idx in continuous:
+        vertex = vertex_table[row_idx]
+        # The vertex should map back to the correct row
+        recovered_row = scene.get_row_from_vertex("CORTEX_RIGHT", int(vertex))
+        assert recovered_row == row_idx
