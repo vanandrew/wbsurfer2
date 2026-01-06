@@ -1,8 +1,36 @@
 import logging
 from pathlib import Path
 
+from pytest import fixture
 
 from wbsurfer.logging import run_process, setup_logging
+
+
+@fixture(autouse=True)
+def reset_logging_for_each_test():
+    """Reset logging before each test in this module."""
+    # Save pytest handlers
+    root_logger = logging.getLogger()
+    pytest_handlers = [
+        h for h in root_logger.handlers if "pytest" in type(h).__module__
+    ]
+
+    # Clear all handlers except pytest's
+    for handler in root_logger.handlers[:]:
+        if handler not in pytest_handlers:
+            handler.close()
+            root_logger.removeHandler(handler)
+
+    # Reset level
+    root_logger.setLevel(logging.WARNING)
+
+    yield
+
+    # Clean up after test
+    for handler in root_logger.handlers[:]:
+        if handler not in pytest_handlers:
+            handler.close()
+            root_logger.removeHandler(handler)
 
 
 def test_run_process_success():
