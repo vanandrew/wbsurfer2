@@ -44,24 +44,20 @@ def test_run_process_with_env():
     assert result == 0
 
 
-def test_setup_logging_stdout(caplog):
+def test_setup_logging_stdout(capsys):
     """Test setting up logging to stdout."""
     setup_logging()
     logger = logging.getLogger(__name__)
 
-    with caplog.at_level(logging.INFO):
-        logger.info("Test log message")
+    logger.info("Test log message")
 
-    assert "Test log message" in caplog.text
+    # Capture stdout
+    captured = capsys.readouterr()
+    assert "Test log message" in captured.out
 
 
 def test_setup_logging_with_file(tmpdir):
     """Test setting up logging with a file handler."""
-    # Clear existing handlers
-    logger = logging.getLogger()
-    for handler in logger.handlers[:]:
-        logger.removeHandler(handler)
-
     log_file = Path(tmpdir) / "test.log"
     setup_logging(log_file=str(log_file))
 
@@ -90,11 +86,6 @@ def test_setup_logging_creates_directory(tmpdir):
 
 def test_setup_logging_overwrites_existing_file(tmpdir):
     """Test that setup_logging overwrites existing log files."""
-    # Clear existing handlers
-    logger = logging.getLogger()
-    for handler in logger.handlers[:]:
-        logger.removeHandler(handler)
-
     log_file = Path(tmpdir) / "test.log"
 
     # Create initial log file with content

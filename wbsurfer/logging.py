@@ -56,6 +56,12 @@ def setup_logging(log_file: str | None = None) -> None:
     log_file: str | None
         Setup path to log file.
     """
+    # Clear any existing handlers to ensure clean state
+    root_logger = logging.getLogger()
+    for handler in root_logger.handlers[:]:
+        handler.close()
+        root_logger.removeHandler(handler)
+
     # create handlers list
     handlers = []
 
