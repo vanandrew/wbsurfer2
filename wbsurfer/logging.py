@@ -56,10 +56,18 @@ def setup_logging(log_file: str | None = None) -> None:
     log_file: str | None
         Setup path to log file.
     """
-    # Clear any existing handlers to ensure clean state
+    # Get the root logger
     root_logger = logging.getLogger()
+
+    # Save pytest handlers if they exist (for test compatibility)
+    pytest_handlers = [
+        h for h in root_logger.handlers if "pytest" in type(h).__module__
+    ]
+
+    # Clear all existing handlers
     for handler in root_logger.handlers[:]:
-        handler.close()
+        if handler not in pytest_handlers:
+            handler.close()
         root_logger.removeHandler(handler)
 
     # create handlers list
@@ -80,6 +88,9 @@ def setup_logging(log_file: str | None = None) -> None:
 
     # add stdout streaming to handlers
     handlers.append(logging.StreamHandler(sys.stdout))
+
+    # Re-add pytest handlers so caplog still works
+    handlers.extend(pytest_handlers)
 
     # setup log output config
     logging.basicConfig(
