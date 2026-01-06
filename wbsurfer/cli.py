@@ -116,7 +116,12 @@ def main():
         parser.error("Border file must be specified.")
 
     # setup logging
-    setup_logging()
+    if not (args.print_rows or args.print_vertices):
+        setup_logging()
+    else:
+        import logging
+
+        logging.disable(logging.WARNING)
 
     # if print mode is not on output is required
     if not (args.print_rows or args.print_vertices) and not args.output:

@@ -140,10 +140,13 @@ def get_continuous_path(
         continuous_path.extend([int(p) for p in interpolated_path])
     # return the continuous path, removing duplicates
     continuous_path = remove_dupicate_indices_from_path(continuous_path)
-
-    # map back to row indices
+    # map back to row indices, we also need to add an offset for the hemisphere
+    offset_start, offset_stop = scene.get_hemisphere_row_offset(hemisphere)
     vertex_table, _ = scene.get_vertex_and_voxel_table()
-    return [int(np.where(vertex_table == p)[0][0]) for p in continuous_path]
+    vertex_table = vertex_table[offset_start:offset_stop]
+    return [
+        int(np.where(vertex_table == p)[0][0]) + offset_start for p in continuous_path
+    ]
 
 
 class GeodesicPath:

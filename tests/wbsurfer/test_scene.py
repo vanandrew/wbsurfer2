@@ -194,6 +194,42 @@ def test_scene_get_hemisphere_gifti_filename(dtseries_scene: Path):
     assert str(right_gifti).endswith(".surf.gii")
 
 
+def test_scene_get_hemisphere_row_offset(dtseries_scene: Path):
+    """Test getting hemisphere row offsets."""
+    scene = Scene(dtseries_scene)
+
+    # Test left hemisphere
+    left_start, left_stop = scene.get_hemisphere_row_offset("CORTEX_LEFT")
+    assert isinstance(left_start, int)
+    assert isinstance(left_stop, int)
+    assert left_start >= 0
+    assert left_stop > left_start
+
+    # Test right hemisphere
+    right_start, right_stop = scene.get_hemisphere_row_offset("CORTEX_RIGHT")
+    assert isinstance(right_start, int)
+    assert isinstance(right_stop, int)
+    assert right_start >= 0
+    assert right_stop > right_start
+
+    # Hemispheres should not overlap
+    assert left_stop <= right_start or right_stop <= left_start
+
+    # Verify offsets match the vertex table structure
+    vertex_table, _ = scene.get_vertex_and_voxel_table()
+    # Left hemisphere vertices should be in the left offset range
+    left_vertices = vertex_table[left_start:left_stop]
+    # All vertices in this range should be non-negative (surface vertices)
+    assert np.all(left_vertices >= 0)
+
+
+def test_scene_get_hemisphere_row_offset_invalid(dtseries_scene: Path):
+    """Test that invalid hemisphere raises error."""
+    scene = Scene(dtseries_scene)
+    with pytest.raises(ValueError, match="Hemisphere.*not found"):
+        scene.get_hemisphere_row_offset("INVALID_HEMISPHERE")
+
+
 def test_scene_change_connectivity_active_row_surface(dtseries_scene: Path):
     """Test changing active row for surface data."""
     scene = Scene(dtseries_scene)
