@@ -175,10 +175,8 @@ class Scene:
 
         Returns
         -------
-        int
-            The starting row index for the hemisphere.
-        int
-            The ending row index for the hemisphere.
+        tuple[int, int]
+            A tuple containing (start_row, end_row) for the hemisphere.
         """
         cifti = self.get_cifti_file()
 
