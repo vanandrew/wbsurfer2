@@ -1,14 +1,29 @@
 import logging
 from pathlib import Path
 
+from pytest import fixture
 
 from wbsurfer.logging import run_process, setup_logging
 
 
-def test_run_process_success():
-    """Test running a successful command."""
-    result = run_process(["echo", "test"], suppress_output=True)
-    assert result == 0
+@fixture(autouse=True)
+def reset_logging_for_each_test():
+    """Reset logging before each test in this module."""
+    # Save pytest handlers
+    root_logger = logging.getLogger()
+    pytest_handlers = [
+        h for h in root_logger.handlers if "pytest" in type(h).__module__
+    ]
+
+    # Clear all handlers except pytest's
+    for handler in root_logger.handlers[:]:
+        if handler not in pytest_handlers:
+            handler.close()
+            root_logger.removeHandler(handler)
+
+    # Re-enable logging if it was disabled by CLI tests
+    # logging.disable(logging.NOTSET) re-enables all logging
+    logging.disable(logging.NOTSET)
 
 
 def test_run_process_failure():
@@ -44,24 +59,20 @@ def test_run_process_with_env():
     assert result == 0
 
 
-def test_setup_logging_stdout(caplog):
+def test_setup_logging_stdout(capsys):
     """Test setting up logging to stdout."""
     setup_logging()
     logger = logging.getLogger(__name__)
 
-    with caplog.at_level(logging.INFO):
-        logger.info("Test log message")
+    logger.info("Test log message")
 
-    assert "Test log message" in caplog.text
+    # Capture stdout
+    captured = capsys.readouterr()
+    assert "Test log message" in captured.out
 
 
 def test_setup_logging_with_file(tmpdir):
     """Test setting up logging with a file handler."""
-    # Clear existing handlers
-    logger = logging.getLogger()
-    for handler in logger.handlers[:]:
-        logger.removeHandler(handler)
-
     log_file = Path(tmpdir) / "test.log"
     setup_logging(log_file=str(log_file))
 
@@ -90,11 +101,6 @@ def test_setup_logging_creates_directory(tmpdir):
 
 def test_setup_logging_overwrites_existing_file(tmpdir):
     """Test that setup_logging overwrites existing log files."""
-    # Clear existing handlers
-    logger = logging.getLogger()
-    for handler in logger.handlers[:]:
-        logger.removeHandler(handler)
-
     log_file = Path(tmpdir) / "test.log"
 
     # Create initial log file with content

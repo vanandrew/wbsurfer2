@@ -165,6 +165,30 @@ class Scene:
             )
         return int(row_index[0])
 
+    def get_hemisphere_row_offset(self, hemisphere: str) -> tuple[int, int]:
+        """Get the starting row index for a hemisphere.
+
+        Parameters
+        ----------
+        hemisphere : str
+            The hemisphere to get the offset for.
+
+        Returns
+        -------
+        tuple[int, int]
+            A tuple containing (start_row, end_row) for the hemisphere.
+        """
+        cifti = self.get_cifti_file()
+
+        # find the bounds for this hemisphere
+        for structure, bound, _ in cifti.header.get_axis(1).iter_structures():
+            if bound.stop is None:
+                bound = slice(bound.start, cifti.shape[1], None)
+            if str(structure).split("CIFTI_STRUCTURE_")[1] == hemisphere:
+                return bound.start, bound.stop
+
+        raise ValueError(f"Hemisphere '{hemisphere}' not found in CIFTI file.")
+
     def get_valid_vertices(self, hemisphere: str) -> set[int]:
         """Get all valid vertex indices for a hemisphere.
 
