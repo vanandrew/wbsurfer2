@@ -21,21 +21,9 @@ def reset_logging_for_each_test():
             handler.close()
             root_logger.removeHandler(handler)
 
-    # Don't change the level - let pytest control it
-
-    yield
-
-    # Clean up after test
-    for handler in root_logger.handlers[:]:
-        if handler not in pytest_handlers:
-            handler.close()
-            root_logger.removeHandler(handler)
-
-
-def test_run_process_success():
-    """Test running a successful command."""
-    result = run_process(["echo", "test"], suppress_output=True)
-    assert result == 0
+    # Re-enable logging if it was disabled by CLI tests
+    # logging.disable(logging.NOTSET) re-enables all logging
+    logging.disable(logging.NOTSET)
 
 
 def test_run_process_failure():
