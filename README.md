@@ -1,6 +1,6 @@
 [![Main Workflow](https://github.com/vanandrew/wbsurfer2/actions/workflows/main.yml/badge.svg)](https://github.com/vanandrew/wbsurfer2/actions/workflows/main.yml)
 [![codecov](https://codecov.io/gh/vanandrew/wbsurfer2/graph/badge.svg?token=GFCYEQRDT0)](https://codecov.io/gh/vanandrew/wbsurfer2)
-![PyPI - Version](https://img.shields.io/pypi/v/wbsurfer2)
+[![PyPI - Version](https://img.shields.io/pypi/v/wbsurfer2)](https://pypi.org/project/wbsurfer2/)
 
 # wbsurfer2
 CLI tool for making CIFTI-related movies
