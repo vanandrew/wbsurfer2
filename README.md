@@ -10,6 +10,8 @@ https://github.com/user-attachments/assets/e40315fb-f528-4cc7-ae91-8827bfef242c
 This is a refactor and refresh of the original [wbsurfer](https://gitlab.com/vanandrew/wbsurfer) tool.
 This version aims to support >= Connectome Workbench 2.0.
 
+If you use this software, please cite it using the metadata in the [CITATION.cff](CITATION.cff) file.
+
 ## Setup
 
 There are two ways to use `wbsurfer2`. The first and recommended way is to
