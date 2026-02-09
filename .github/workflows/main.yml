@@ -87,7 +87,7 @@ jobs:
           yum install -y python3.11-devel
           python3 -m ensurepip
           python3 -m pip install --upgrade pip
-          python3 -m pip install "setuptools<82" wheel "setuptools-scm>=8"
+          python3 -m pip install "setuptools<82" wheel "setuptools-scm>=8" Cython autowrap
           python3 -m pip install pyinstaller
           python3 -m pip install --no-build-isolation .
           pyinstaller --onefile $(which wb_surfer2) --name wb_surfer2
@@ -113,7 +113,7 @@ jobs:
         run: |
           brew install boost
           export CPPFLAGS="-I/opt/homebrew/include"
-          python -m pip install "setuptools<82" wheel "setuptools-scm>=8"
+          python -m pip install "setuptools<82" wheel "setuptools-scm>=8" Cython autowrap
           python -m pip install --no-build-isolation .
       - name: Run PyInstaller
         run: pyinstaller --onefile $(which wb_surfer2) --name wb_surfer2
